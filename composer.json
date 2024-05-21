@@ -1,0 +1,19 @@
+{
+    "name": "niklose00/kit",
+    "description": "A reusable KIT library for CodeIgniter as part of my bachelor's thesis. This library includes generic AI functions designed to enhance the power of forms in web applications.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Niklose00\\Kit\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Nico",
+            "email": "klosenico00@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
+}
