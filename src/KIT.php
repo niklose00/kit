@@ -6,6 +6,6 @@ class Kit
 {
     public function sayHello()
     {
-        return "Hello from KIT Library!";
+        return "Hello from KIT Library2!";
     }
 }
