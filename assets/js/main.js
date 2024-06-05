@@ -602,9 +602,7 @@ class ApiService {
   static async loadConfiguration(type = "") {
     if (!ApiService.configuration.has(type)) {
       try {
-        const response = await fetch(
-          `${baseurl}/KITools/getConfigurationData/${type}`
-        );
+        const response = await fetch(`*/config/config.json`);
         if (!response.ok) {
           throw new Error("Konfiguration konnte nicht geladen werden.");
         }
@@ -773,6 +771,13 @@ class Regex {
 
 // Initialisierung mit Konfigurationsladung
 document.addEventListener("DOMContentLoaded", async () => {
+  // Konfigurationsdatei laden
+  const config = await ApiService.loadConfiguration();
+  console.log(config);
+
+
+  
+
   // Konfigurationen laden
   AIEnhancedElement.configuration = await ApiService.loadConfiguration(
     "ai_enhanced_element"
