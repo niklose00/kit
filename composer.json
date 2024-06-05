@@ -6,10 +6,7 @@
     "autoload": {
         "psr-4": {
             "Niklose00\\Kit\\": "src/"
-        },
-        "files": [
-            "assets/js/main.js"
-        ]
+        }
     },
     "authors": [
         {
@@ -18,16 +15,7 @@
         }
     ],
     "minimum-stability": "dev",
-    "prefer-stable": true,
+    "prefer-stable": true
    
-    "extra": {
-        "installer-types": [
-            "bower-asset"
-        ],
-        "installer-paths": {
-            "public/assets/{$name}/": [
-                "type:bower-asset"
-            ]
-        }
-    }
+   
 }
