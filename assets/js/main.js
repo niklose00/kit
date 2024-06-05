@@ -772,8 +772,9 @@ class Regex {
 // Initialisierung mit Konfigurationsladung
 document.addEventListener("DOMContentLoaded", async () => {
   // Konfigurationsdatei laden
-  // const config = await ApiService.loadConfiguration();
-  // console.log(config);
+  const config = await ApiService.loadConfiguration();
+  console.log("config");
+  console.log(config);
 
 
 
