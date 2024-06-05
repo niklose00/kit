@@ -602,7 +602,7 @@ class ApiService {
   static async loadConfiguration(type = "") {
     if (!ApiService.configuration.has(type)) {
       try {
-        const response = await fetch(`*/config/config.json`);
+        const response = await fetch(`http://localhost/composer_testing2/vendor/niklose00/kit/config/config.json`);
         if (!response.ok) {
           throw new Error("Konfiguration konnte nicht geladen werden.");
         }
