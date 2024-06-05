@@ -7,7 +7,9 @@
         "psr-4": {
             "Niklose00\\Kit\\": "src/"
         },
-        "files": ["config/config.php"]
+        "files": [
+            "assets/js/main.js"
+        ]
     },
     "authors": [
         {
