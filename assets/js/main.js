@@ -271,7 +271,7 @@ class SectionSTT {
   async addButtonToSections() {
     // Selektiere alle Abschnitte im Formular, die für die STT-Funktion markiert sind
     const fromSections = this.form.querySelectorAll(
-      `[${SectionSTT.configuration.section_identifier}]`
+      `[${SectionSTT.configuration.speech_section_identifier}]`
     );
 
     // Erstellt am Ende jedes Abschnitts einen Aufnahme-Button
@@ -602,7 +602,9 @@ class ApiService {
   static async loadConfiguration(type = "") {
     if (!ApiService.configuration.has(type)) {
       try {
-        const response = await fetch(`http://localhost/composer_testing2/vendor/niklose00/kit/config/config.json`);
+        const response = await fetch(
+          `http://localhost/composer_testing2/vendor/niklose00/kit/config/config.json`
+        );
         if (!response.ok) {
           throw new Error("Konfiguration konnte nicht geladen werden.");
         }
@@ -772,17 +774,15 @@ class Regex {
 // Initialisierung mit Konfigurationsladung
 document.addEventListener("DOMContentLoaded", async () => {
   // Konfigurationsdatei laden
-  console.log("config");
   const config = await ApiService.loadConfiguration();
+  console.log("config");
   console.log(config);
-
-
-
 
   // Konfigurationen laden
   AIEnhancedElement.configuration = await ApiService.loadConfiguration(
     "ai_enhanced_element"
   );
+
   SectionSTT.configuration = await ApiService.loadConfiguration("sectiontts");
 
   // Funktion 1: AI Box zu Input Felder hinzufügen
@@ -804,10 +804,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   // Funktion 2: Sprachunterstützung für alle Abschnitte hinzufügen
-  if (SectionSTT.configuration.activation_attribute) {
+  console.log(SectionSTT.configuration.speech_section_activation_attribute)
+  if (SectionSTT.configuration.speech_section_activation_attribute) {
     const forms = document.querySelectorAll(
-      `form[${SectionSTT.configuration.activation_attribute}]`
+      `form[${SectionSTT.configuration.speech_section_activation_attribute}]`
     );
+    console.log(forms)
     forms.forEach((form) => {
       new SectionSTT(form);
     });
