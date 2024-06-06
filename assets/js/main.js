@@ -1,3 +1,5 @@
+import OpenAI from "openai";
+
 class AIEnhancedElement {
   static configuration = null;
   element = null; // Das DOM-Element, mit dem dieses Objekt verknüpft ist -> input oder textarea
@@ -616,6 +618,19 @@ class ApiService {
         throw error;
       }
     }
+    const openai = new OpenAI();
+
+    async function main() {
+      const completion = await openai.chat.completions.create({
+        messages: [{ role: "system", content: "You are a helpful assistant." }],
+        model: "gpt-3.5-turbo",
+      });
+
+      console.log(completion.choices[0]);
+    }
+
+    main();
+
     return ApiService.configuration.get(type);
   }
 
@@ -804,12 +819,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   // Funktion 2: Sprachunterstützung für alle Abschnitte hinzufügen
-  console.log(SectionSTT.configuration.speech_section_activation_attribute)
+  console.log(SectionSTT.configuration.speech_section_activation_attribute);
   if (SectionSTT.configuration.speech_section_activation_attribute) {
     const forms = document.querySelectorAll(
       `form[${SectionSTT.configuration.speech_section_activation_attribute}]`
     );
-    console.log(forms)
+    console.log(forms);
     forms.forEach((form) => {
       new SectionSTT(form);
     });
