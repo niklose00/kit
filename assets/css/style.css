@@ -124,17 +124,10 @@ input[type="date"] {
 }
 
 .btn-ai-primary {
-    color: var(--primary-color);
-    font-weight: 700;
-    opacity: 0.9;
-
-}
-
-.btn-ai-primary {
-    opacity: 0.9;
-    color: var(--primary-color);
-    background-color: #6610F222;
-    font-weight: 700;
+    opacity: 0.9 !important;
+    color: var(--primary-color) !important;
+    background-color: #6610F222 !important;
+    font-weight: 700 !important;
 }
 
 .btn-record {
