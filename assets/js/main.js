@@ -1,5 +1,3 @@
-
-
 class AIEnhancedElement {
   static configuration = null;
   element = null; // Das DOM-Element, mit dem dieses Objekt verknüpft ist -> input oder textarea
@@ -168,34 +166,37 @@ class AIEnhancedElement {
 
     // Senden der angepassten Anfrage an den Server und Verarbeitung der Antwort
     try {
-      const requestData = prompt;
-      ApiService.sendRequest(`KITools/getOpenAiAnswer/${requestData}`)
+      const requestData = { action: "getAnswer", prompt: prompt };
+      ApiService.sendRequest("", {
+        method: "POST",
+        body: JSON.stringify(requestData),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
         .then((responseData) => {
-          console.log("Antwort vom Controller:", responseData);
-          const responseText = responseData.choices[0].text;
+          const responseText = JSON.parse(responseData).choices[0].text;
 
           // Aktualisieren des HTMLs der Box mit der Antwort des Servers
           box.innerHTML = `
           <div class="ai-answer">
-            <div>
-            <div class="heading">Vorschlag</div>
-              <div class="responseText">
-                ${responseText}
+              <div>
+                  <div class="heading">Vorschlag</div>
+                  <div class="responseText">
+                      ${responseText}
+                  </div>
               </div>
-            </div>
-            <div>
-              <div type="button" class="btn btn-ai-primary" id="uebernehmen">
-                übernehmen
+              <div>
+                  <div type="button" class="btn btn-ai-primary" id="uebernehmen">
+                      übernehmen
+                  </div>
+                  <div type="button" class="btn btn-ai-danger" id="test">
+                      ablehnen
+                  </div>
               </div>
-
-
-              <div type="button" class="btn btn-ai-danger" id="test">
-                ablehnen
-              </div>
-            </div>
           </div>`;
 
-          // Hinzufügen von  Event Listener für die Antwort-Buttons
+          // Hinzufügen von Event Listener für die Antwort-Buttons
           document.getElementById("test").addEventListener("click", (event) => {
             this.rejectGeneration(event);
           });
@@ -600,6 +601,8 @@ class Audio {
 
 class ApiService {
   static configuration = new Map();
+  static baseurl =
+    "http://localhost/composer_testing2/vendor/niklose00/kit/src/api.php";
 
   static async loadConfiguration(type = "") {
     if (!ApiService.configuration.has(type)) {
@@ -622,7 +625,7 @@ class ApiService {
     return ApiService.configuration.get(type);
   }
 
-  static async sendRequest(path, options = {}) {
+  static async sendRequestOLD(path, options = {}) {
     const url = `${baseurl}/${path}`;
     const fetchOptions = {
       method: options.method ?? "POST",
@@ -634,6 +637,44 @@ class ApiService {
     };
 
     // Entfernen des Content-Type Headers, wenn body ein FormData ist
+    if (options.body instanceof FormData) {
+      delete fetchOptions.headers["Content-Type"];
+    }
+
+    try {
+      const response = await fetch(url, fetchOptions);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error("API Request failed:", error);
+      throw error;
+    }
+  }
+
+  static async sendRequest(path, options = {}) {
+    const url = new URL(`${ApiService.baseurl}${path ? `?${path}` : ""}`);
+
+    const fetchOptions = {
+      method: options.method ?? "POST",
+      headers: {
+        ...options.headers,
+        Accept: "application/json",
+      },
+    };
+
+    if (fetchOptions.method === "GET") {
+      Object.keys(options.params || {}).forEach((key) =>
+        url.searchParams.append(key, options.params[key])
+      );
+    } else {
+      fetchOptions.body = options.body;
+      if (!(options.body instanceof FormData)) {
+        fetchOptions.headers["Content-Type"] = "application/json";
+      }
+    }
+
     if (options.body instanceof FormData) {
       delete fetchOptions.headers["Content-Type"];
     }

@@ -28,10 +28,56 @@ function getSomeData() {
 }
 
 // Überprüfe, ob eine spezifische Funktion aufgerufen werden soll
-if (isset($_GET['action']) && $_GET['action'] == 'getAnswer' && isset($_GET['prompt'])) {
-    // echo getSomeData();
-    echo getOpenAiAnswer($_GET['prompt']);
-} else {
-    echo json_encode(["error" => "Missing parameters or wrong action"]);
+// if (isset($_GET['action']) && $_GET['action'] == 'getAnswer' && isset($_GET['prompt'])) {
+//     // echo getSomeData();
+//     echo getOpenAiAnswer($_GET['prompt']);
+// } else {
+//     echo json_encode(["error" => "Missing parameters or wrong action"]);
+// }
+
+
+
+function handleRequest() {
+    $method = $_SERVER['REQUEST_METHOD'];
+    if ($method == 'GET') {
+        if (isset($_GET['action'])) {
+            if ($_GET['action'] == 'getAnswer' && isset($_GET['prompt'])) {
+                echo getOpenAiAnswer($_GET['prompt']);
+            } else {
+                echo getSomeData();
+            }
+        } else {
+            echo json_encode(["error" => "Missing action parameter"]);
+        }
+    } elseif ($method == 'POST') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (isset($input['action'])) {
+            if ($input['action'] == 'getAnswer' && isset($input['prompt'])) {
+                echo getOpenAiAnswer($input['prompt']);
+            } else {
+                echo json_encode(["error" => "Invalid action or missing prompt"]);
+            }
+        } else {
+            echo json_encode(["error" => "Missing action parameter"]);
+        }
+    } else {
+        echo json_encode(["error" => "Invalid request method"]);
+    }
 }
+
+handleRequest();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ?>
