@@ -325,11 +325,13 @@ class SectionSTT {
       );
       this.audio.stopRecording(async (blob) => {
         try {
-          console.log(blob);
           const result = await ApiService.sendAudioForSTT(blob);
-          console.log("result");
-          console.log(result);
-          this.processInstructions(formSection, result.text, index);
+          const text = JSON.parse(result.transcription).text;
+          console.log(text)
+
+
+
+          this.processInstructions(formSection, text, index);
 
           // Aktualisiert den Button erst, nachdem processInstructions abgeschlossen ist
           this.updateButtonUI(
@@ -423,18 +425,20 @@ class SectionSTT {
     const formSectionInputs = $(formSection).find("input, textarea");
     let prompt = this.buildPrompt(formSectionInputs, text, index);
     // Bereitet den Anfragekörper vor, der als JSON-String formatiert wird
-    const body = { text: prompt };
+    const requestData = { action: "getAnswer", prompt: prompt };
+      ApiService.sendRequest("", {
+        method: "POST",
+        body: JSON.stringify(requestData),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
 
-    ApiService.sendRequest("KITools/getOpenAiAnswerBody/text", {
-      method: "POST",
-      body: JSON.stringify(body),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
+    
       .then((responseData) => {
+        console.log(responseData)
         let convertedJSON = SectionSTT.convertToJSON(
-          responseData.choices[0].text
+          JSON.parse(responseData).choices[0].text
         );
         // Aktualisiert die Input-Felder des Formularabschnitts basierend auf der verarbeiteten Antwort
         SectionSTT.fillInputs(convertedJSON, formSectionInputs);
