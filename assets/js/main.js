@@ -325,7 +325,10 @@ class SectionSTT {
       );
       this.audio.stopRecording(async (blob) => {
         try {
+          console.log(blob);
           const result = await ApiService.sendAudioForSTT(blob);
+          console.log("result");
+          console.log(result);
           this.processInstructions(formSection, result.text, index);
 
           // Aktualisiert den Button erst, nachdem processInstructions abgeschlossen ist
@@ -692,16 +695,33 @@ class ApiService {
   }
 
   // Spezifische Methode zum Hochladen von Audio-Dateien
-  static sendAudioForSTT(blob) {
+  static async sendAudioForSTT(blob) {
     const formData = new FormData();
-    formData.append("file", blob, "audiofile.wav");
+    formData.append("audio", blob, "aufnahme.wav");
 
-    // Pfad, Methode und Body für den Request
-    return ApiService.sendRequest("KITools/speechToText", {
-      method: "POST",
-      body: formData,
-    });
-  }
+
+    try {
+        const response = await fetch(
+            "http://localhost/composer_testing2/vendor/niklose00/kit/src/upload.php",
+            {
+                method: "POST",
+                body: formData,
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`Fehler beim Hochladen: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log(result);
+        return result;
+    } catch (error) {
+        console.error("Es gab ein Problem mit dem Hochladen der Audio-Datei:", error);
+        throw error;  // Fehler weiter werfen, um sie außerhalb der Methode behandeln zu können
+    }
+}
+
 }
 
 class DOMElement {

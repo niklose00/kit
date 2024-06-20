@@ -6,7 +6,8 @@ use Orhanerday\OpenAi\OpenAi;
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
 
-function getOpenAiAnswer($prompt = "") {
+function getOpenAiAnswer($prompt = "")
+{
     $openAiKey = getenv('OPENAI_API_KEY');  // Sicherer, den API-Key als Umgebungsvariable zu verwenden
     $openAi = new OpenAI($openAiKey);
 
@@ -19,12 +20,13 @@ function getOpenAiAnswer($prompt = "") {
         'presence_penalty' => 0.6,
     ]);
 
-    
+
     return json_encode($complete);
 }
 
-function getSomeData() {
-    return "Daten von der PHP-Funktion";
+function getSomeData($input)
+{
+    return json_encode($input);
 }
 
 // Überprüfe, ob eine spezifische Funktion aufgerufen werden soll
@@ -37,14 +39,15 @@ function getSomeData() {
 
 
 
-function handleRequest() {
+function handleRequest()
+{
     $method = $_SERVER['REQUEST_METHOD'];
     if ($method == 'GET') {
         if (isset($_GET['action'])) {
             if ($_GET['action'] == 'getAnswer' && isset($_GET['prompt'])) {
                 echo getOpenAiAnswer($_GET['prompt']);
             } else {
-                echo getSomeData();
+                echo getSomeData("test");
             }
         } else {
             echo json_encode(["error" => "Missing action parameter"]);
@@ -54,6 +57,8 @@ function handleRequest() {
         if (isset($input['action'])) {
             if ($input['action'] == 'getAnswer' && isset($input['prompt'])) {
                 echo getOpenAiAnswer($input['prompt']);
+            } else if ($input['action'] == 'speechToText') {
+                echo getSomeData($input["prompt"]);
             } else {
                 echo json_encode(["error" => "Invalid action or missing prompt"]);
             }
@@ -65,19 +70,54 @@ function handleRequest() {
     }
 }
 
+function handleRequesta()
+{
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'tts') {
+        // Prüfen, ob eine Datei hochgeladen wurde
+        if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
+            $fileTmpPath = $_FILES['file']['tmp_name'];
+            $fileName = $_FILES['file']['name'];
+            $fileSize = $_FILES['file']['size'];
+            $fileType = $_FILES['file']['type'];
+    
+            // Zielverzeichnis für die Datei
+            $uploadFileDir = './uploaded_files/';
+            $dest_path = $uploadFileDir . $fileName;
+    
+            // Datei an das Zielverzeichnis verschieben
+            if(move_uploaded_file($fileTmpPath, $dest_path)) {
+                $message = 'Datei erfolgreich hochgeladen.';
+    
+                // Hier kannst du die Datei weiter verarbeiten, z.B. für Speech-to-Text
+                // $audioText = convertAudioToText($dest_path);
+    
+                // Beispiel für eine Rückgabe
+                echo json_encode([
+                    'status' => 'success',
+                    'message' => $message,
+                    'file' => $fileName,
+                    // 'text' => $audioText
+                ]);
+            } else {
+                $message = 'Beim Hochladen der Datei ist ein Fehler aufgetreten.';
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => $message,
+                ]);
+            }
+        } else {
+            $message = 'Keine Datei hochgeladen oder ein Fehler ist aufgetreten.';
+            echo json_encode([
+                'status' => 'error',
+                'message' => $message,
+            ]);
+        }
+    } else {
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Ungültige Anfragemethode oder Aktion.',
+        ]);
+    }
+}
+
 handleRequest();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-?>
