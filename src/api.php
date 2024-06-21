@@ -29,14 +29,6 @@ function getSomeData($input)
     return json_encode($input);
 }
 
-// Überprüfe, ob eine spezifische Funktion aufgerufen werden soll
-// if (isset($_GET['action']) && $_GET['action'] == 'getAnswer' && isset($_GET['prompt'])) {
-//     // echo getSomeData();
-//     echo getOpenAiAnswer($_GET['prompt']);
-// } else {
-//     echo json_encode(["error" => "Missing parameters or wrong action"]);
-// }
-
 
 
 function handleRequest()
@@ -67,56 +59,6 @@ function handleRequest()
         }
     } else {
         echo json_encode(["error" => "Invalid request method"]);
-    }
-}
-
-function handleRequesta()
-{
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'tts') {
-        // Prüfen, ob eine Datei hochgeladen wurde
-        if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
-            $fileTmpPath = $_FILES['file']['tmp_name'];
-            $fileName = $_FILES['file']['name'];
-            $fileSize = $_FILES['file']['size'];
-            $fileType = $_FILES['file']['type'];
-    
-            // Zielverzeichnis für die Datei
-            $uploadFileDir = './uploaded_files/';
-            $dest_path = $uploadFileDir . $fileName;
-    
-            // Datei an das Zielverzeichnis verschieben
-            if(move_uploaded_file($fileTmpPath, $dest_path)) {
-                $message = 'Datei erfolgreich hochgeladen.';
-    
-                // Hier kannst du die Datei weiter verarbeiten, z.B. für Speech-to-Text
-                // $audioText = convertAudioToText($dest_path);
-    
-                // Beispiel für eine Rückgabe
-                echo json_encode([
-                    'status' => 'success',
-                    'message' => $message,
-                    'file' => $fileName,
-                    // 'text' => $audioText
-                ]);
-            } else {
-                $message = 'Beim Hochladen der Datei ist ein Fehler aufgetreten.';
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => $message,
-                ]);
-            }
-        } else {
-            $message = 'Keine Datei hochgeladen oder ein Fehler ist aufgetreten.';
-            echo json_encode([
-                'status' => 'error',
-                'message' => $message,
-            ]);
-        }
-    } else {
-        echo json_encode([
-            'status' => 'error',
-            'message' => 'Ungültige Anfragemethode oder Aktion.',
-        ]);
     }
 }
 

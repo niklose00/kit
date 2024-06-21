@@ -11,10 +11,10 @@ class AIEnhancedElement {
   }
 
   async init() {
-    // Lädt die Konfiguration asynchron und initialisiert die grafische Darstellung und Event-Listener
-    AIEnhancedElement.configuration = await ApiService.loadConfiguration(
-      "ai_enhanced_element"
-    );
+    if (!AIEnhancedElement.configuration) {
+      AIEnhancedElement.configuration = await ApiService.loadConfiguration();
+    }
+    
     this.setupGraphics();
     this.element.addEventListener("click", this.showBox.bind(this));
   }
@@ -27,7 +27,7 @@ class AIEnhancedElement {
     });
 
     const iconElement = new DOMElement("i", {
-      className: `icon fas ${AIEnhancedElement.configuration["visuals"].aiEnhancedIcon}`,
+      className: `icon fas ${AIEnhancedElement.configuration.visuals.aiEnhancedIcon}`,
     });
     const boxDiv = this.createBoxStructure();
 
@@ -261,9 +261,7 @@ class SectionSTT {
   async init() {
     if (!SectionSTT.configuration) {
       // Stellt sicher, dass die Konfiguration nur einmal geladen wird
-      SectionSTT.configuration = await ApiService.loadConfiguration(
-        "sectiontts"
-      );
+      SectionSTT.configuration = await ApiService.loadConfiguration();
     }
     this.addButtonToSections();
   }
@@ -274,7 +272,7 @@ class SectionSTT {
   async addButtonToSections() {
     // Selektiere alle Abschnitte im Formular, die für die STT-Funktion markiert sind
     const fromSections = this.form.querySelectorAll(
-      `[${SectionSTT.configuration.speech_section_identifier}]`
+      `[${SectionSTT.configuration.section_identifier}]`
     );
 
     // Erstellt am Ende jedes Abschnitts einen Aufnahme-Button
@@ -327,9 +325,7 @@ class SectionSTT {
         try {
           const result = await ApiService.sendAudioForSTT(blob);
           const text = JSON.parse(result.transcription).text;
-          console.log(text)
-
-
+          console.log(text);
 
           this.processInstructions(formSection, text, index);
 
@@ -426,17 +422,16 @@ class SectionSTT {
     let prompt = this.buildPrompt(formSectionInputs, text, index);
     // Bereitet den Anfragekörper vor, der als JSON-String formatiert wird
     const requestData = { action: "getAnswer", prompt: prompt };
-      ApiService.sendRequest("", {
-        method: "POST",
-        body: JSON.stringify(requestData),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
+    ApiService.sendRequest("", {
+      method: "POST",
+      body: JSON.stringify(requestData),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
 
-    
       .then((responseData) => {
-        console.log(responseData)
+        console.log(responseData);
         let convertedJSON = SectionSTT.convertToJSON(
           JSON.parse(responseData).choices[0].text
         );
@@ -607,29 +602,29 @@ class Audio {
 }
 
 class ApiService {
-  static configuration = new Map();
+  static configuration = {};
   static baseurl =
     "http://localhost/composer_testing2/vendor/niklose00/kit/src/api.php";
 
-  static async loadConfiguration(type = "") {
-    if (!ApiService.configuration.has(type)) {
+  static async loadConfiguration() {
+    if (ApiService.configuration != {}) {
       try {
         const response = await fetch(
-          `http://localhost/composer_testing2/vendor/niklose00/kit/config/config.json`
+          `../vendor/niklose00/kit/config/config.json`
         );
         if (!response.ok) {
           throw new Error("Konfiguration konnte nicht geladen werden.");
         }
 
         const configurationData = await response.json();
-        ApiService.configuration.set(type, configurationData);
+        ApiService.configuration = configurationData;
       } catch (error) {
         console.error("Fehler beim Laden der Konfiguration:", error);
         throw error;
       }
     }
 
-    return ApiService.configuration.get(type);
+    return ApiService.configuration;
   }
 
   static async sendRequestOLD(path, options = {}) {
@@ -703,29 +698,30 @@ class ApiService {
     const formData = new FormData();
     formData.append("audio", blob, "aufnahme.wav");
 
-
     try {
-        const response = await fetch(
-            "http://localhost/composer_testing2/vendor/niklose00/kit/src/upload.php",
-            {
-                method: "POST",
-                body: formData,
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error(`Fehler beim Hochladen: ${response.statusText}`);
+      const response = await fetch(
+        "http://localhost/composer_testing2/vendor/niklose00/kit/src/upload.php",
+        {
+          method: "POST",
+          body: formData,
         }
+      );
 
-        const result = await response.json();
-        console.log(result);
-        return result;
+      if (!response.ok) {
+        throw new Error(`Fehler beim Hochladen: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log(result);
+      return result;
     } catch (error) {
-        console.error("Es gab ein Problem mit dem Hochladen der Audio-Datei:", error);
-        throw error;  // Fehler weiter werfen, um sie außerhalb der Methode behandeln zu können
+      console.error(
+        "Es gab ein Problem mit dem Hochladen der Audio-Datei:",
+        error
+      );
+      throw error; // Fehler weiter werfen, um sie außerhalb der Methode behandeln zu können
     }
-}
-
+  }
 }
 
 class DOMElement {
@@ -847,11 +843,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   console.log(config);
 
   // Konfigurationen laden
-  AIEnhancedElement.configuration = await ApiService.loadConfiguration(
-    "ai_enhanced_element"
-  );
+  AIEnhancedElement.configuration = ApiService.configuration["inputFunction"];
+  SectionSTT.configuration = ApiService.configuration["speechSectionFunction"]; 
 
-  SectionSTT.configuration = await ApiService.loadConfiguration("sectiontts");
+
 
   // Funktion 1: AI Box zu Input Felder hinzufügen
   const aiEnhancedElements = document.querySelectorAll(
@@ -872,12 +867,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   // Funktion 2: Sprachunterstützung für alle Abschnitte hinzufügen
-  console.log(SectionSTT.configuration.speech_section_activation_attribute);
-  if (SectionSTT.configuration.speech_section_activation_attribute) {
+  console.log(SectionSTT.configuration.activation_attribute);
+  if (SectionSTT.configuration.activation_attribute) {
     const forms = document.querySelectorAll(
-      `form[${SectionSTT.configuration.speech_section_activation_attribute}]`
+      `form[${SectionSTT.configuration.activation_attribute}]`
     );
-    console.log(forms);
     forms.forEach((form) => {
       new SectionSTT(form);
     });
