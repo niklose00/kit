@@ -1,12 +1,10 @@
 class AIEnhancedElement {
   static configuration = null;
-  element = null; // Das DOM-Element, mit dem dieses Objekt verknüpft ist -> input oder textarea
-  index = null; // Ein eindeutiger Index, der diesem Element zugeordnet ist
-  box = null; // Verweis auf das Box-Element, das die KI Funktionen enthält
 
   constructor(element, index) {
     this.element = element;
     this.index = index;
+    this.box = null;
     this.init();
   }
 
@@ -14,51 +12,40 @@ class AIEnhancedElement {
     if (!AIEnhancedElement.configuration) {
       AIEnhancedElement.configuration = await ApiService.loadConfiguration();
     }
-    
+
     this.setupGraphics();
     this.element.addEventListener("click", this.showBox.bind(this));
   }
 
   setupGraphics() {
-    // Bereitet das grafische Layout des Elements vor
     const parentDiv = this.element.parentNode;
-    const elementContainer = new DOMElement("div", {
-      className: "input-with-icon p-l",
-    });
-
-    const iconElement = new DOMElement("i", {
-      className: `icon fas ${AIEnhancedElement.configuration.visuals.aiEnhancedIcon}`,
-    });
+    const elementContainer = this.createElementContainer();
+    const iconElement = this.createIconElement();
     const boxDiv = this.createBoxStructure();
 
-    // Fügt das Hauptelement (input/textarea) und das KI-repräsentierende Icon zum Container hinzu, fügt diesen Container dann ins DOM ein und platziert anschließend die Box mit den KI-Funktionen.
-    elementContainer.append(this.element);
-    elementContainer.append(iconElement);
-    elementContainer.appendTo(parentDiv);
-
+    elementContainer
+      .append(this.element)
+      .append(iconElement)
+      .appendTo(parentDiv);
     parentDiv.insertBefore(boxDiv, parentDiv.children[3]);
   }
 
-  showBox() {
-    // Blendet alle anderen Boxen aus, bevor die spezifische Box angezeigt wird
-    const aiEnhancedElements = document.querySelectorAll(
-      `[${AIEnhancedElement.configuration.activation_attribute}]`
-    );
-    aiEnhancedElements.forEach((el) => {
-      const box = el
-        .closest(".input-with-icon")
-        .parentNode.querySelector(".box");
-      if (box) {
-        box.style.display = "none";
-      }
-    });
+  createElementContainer() {
+    return new DOMElement("div", { className: "input-with-icon p-l" });
+  }
 
-    // Zeigt die Box des geklickten Elements an
-    const parentDiv = this.element.closest(".input-with-icon").parentNode;
-    const box = parentDiv.querySelector(".box");
-    if (box) {
-      box.style.display = "block";
-    }
+  createIconElement() {
+    return new DOMElement("i", {
+      className: `icon fas ${AIEnhancedElement.configuration.visuals.aiEnhancedIcon}`,
+    });
+  }
+
+  showBox() {
+    AIEnhancedElement.hideAllBoxes();
+    const box = this.element
+      .closest(".input-with-icon")
+      .parentNode.querySelector(".box");
+    if (box) box.style.display = "block";
   }
 
   createBoxStructure() {
@@ -66,73 +53,78 @@ class AIEnhancedElement {
     boxDiv.className = "box";
     boxDiv.style.maxWidth = this.element.offsetWidth + "px";
 
-    try {
-      // Tool-Namen aus dem "tools"-Attribut des Elements extrahieren
-      const tools = this.element.getAttribute("tools")?.split(";") || [];
+    const toolsMap = this.getToolsMap();
+    boxDiv.innerHTML = this.generateBoxContent(toolsMap);
 
-      // Map erstellen (Kategorie => Tool)
-      const toolsMap = new Map();
+    this.addToolSelectionHandlers(boxDiv);
 
-      tools.forEach((tool) => {
-        const toolData = AIEnhancedElement.configuration.tools[tool];
-
-        if (toolData == null) {
-          console.error(`Das Tool ${tool} ist nicht in der Config definiert`);
-          return;
-        }
-        toolData.key = tool;
-        const category = toolData.category;
-        toolsMap.set(category, [...(toolsMap.get(category) || []), toolData]);
-      });
-
-      // HTML-Inhalt der Box basierend auf den kategorisierten Tools zusammenstellen
-      const boxContent = Array.from(toolsMap, ([category, categoryTools]) => {
-        const toolsHTML = categoryTools
-          .map(
-            (tool) =>
-              `<div class="auswahl" key="${tool.key}">
-                <div class="icon-container">
-                  <i class="fa-solid ${tool.icon}"></i>
-                </div>
-                <div>${tool.label}</div>
-              </div>`
-          )
-          .join("");
-
-        return `
-        <div class="bereich">
-          <div class="heading">${category}</div>
-          ${toolsHTML}
-        </div>
-      `;
-      }).join("");
-
-      // HTML-Inhalt in die Box einfügen
-      boxDiv.innerHTML = boxContent;
-
-      // KI-Funktionen innerhalb der Box interaktiv machen
-      boxDiv.querySelectorAll(".auswahl").forEach((element) => {
-        element.addEventListener("click", (event) => {
-          this.handleSelection(event);
-        });
-      });
-
-      return boxDiv;
-    } catch (error) {
-      console.error(
-        "Ein Error ist während der Erstellung der Box Struktur aufgetreten:",
-        error
-      );
-      return null;
-    }
+    return boxDiv;
   }
 
-  handleSelection(event) {
-    // Extrahiere das geklickte Element aus dem Event-Target.
+  getToolsMap() {
+    const toolsMap = new Map();
+    const tools = this.element.getAttribute("tools")?.split(";") || [];
+
+    tools.forEach((tool) => {
+      const toolData = AIEnhancedElement.configuration.tools[tool];
+
+      if (toolData == null) {
+        console.error(`Das Tool ${tool} ist nicht in der Config definiert`);
+        return;
+      }
+      toolData.key = tool;
+      const category = toolData.category;
+      toolsMap.set(category, [...(toolsMap.get(category) || []), toolData]);
+    });
+    return toolsMap;
+  }
+
+  generateBoxContent(toolsMap) {
+    return Array.from(toolsMap, ([category, categoryTools]) => {
+      const toolsHTML = categoryTools
+        .map(
+          (tool) =>
+            `<div class="auswahl" key="${tool.key}">
+              <div class="icon-container">
+                <i class="fa-solid ${tool.icon}"></i>
+              </div>
+              <div>${tool.label}</div>
+            </div>`
+        )
+        .join("");
+
+      return `
+      <div class="bereich">
+        <div class="heading">${category}</div>
+        ${toolsHTML}
+      </div>
+    `;
+    }).join("");
+  }
+
+  addToolSelectionHandlers(boxDiv) {
+    boxDiv.querySelectorAll(".auswahl").forEach((element) => {
+      element.addEventListener("click", (event) => this.handleSelection(event));
+    });
+  }
+
+  async handleSelection(event) {
     const selectedElement = event.currentTarget;
     const key = selectedElement.getAttribute("key");
     const tool = AIEnhancedElement.configuration.tools[key];
 
+    let prompt = this.buildPrompt(tool, selectedElement);
+    const box = selectedElement.closest(".box");
+
+    try {
+      const responseText = await this.sendPromptToServer(prompt);
+      this.updateBoxContent(box, responseText);
+    } catch (error) {
+      console.error("Fehler beim Senden der Anfrage:", error);
+    }
+  }
+
+  buildPrompt(tool, selectedElement) {
     let prompt = tool.prompt;
     const input = $(selectedElement)
       .closest(".box")
@@ -161,57 +153,37 @@ class AIEnhancedElement {
       // Platzhalter durch Signalisator ersetzen
       prompt = prompt.replace(`{input}`, baustein);
     }
+    return prompt;
+  }
 
-    const box = selectedElement.closest(".box");
+  async sendPromptToServer(prompt) {
+    const requestData = { action: "getAnswer", prompt: prompt };
+    const response = await ApiService.sendRequest("", {
+      method: "POST",
+      body: JSON.stringify(requestData),
+      headers: { "Content-Type": "application/json" },
+    });
+    return JSON.parse(response).choices[0].text;
+  }
 
-    // Senden der angepassten Anfrage an den Server und Verarbeitung der Antwort
-    try {
-      const requestData = { action: "getAnswer", prompt: prompt };
-      ApiService.sendRequest("", {
-        method: "POST",
-        body: JSON.stringify(requestData),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-        .then((responseData) => {
-          const responseText = JSON.parse(responseData).choices[0].text;
-
-          // Aktualisieren des HTMLs der Box mit der Antwort des Servers
-          box.innerHTML = `
-          <div class="ai-answer">
-              <div>
-                  <div class="heading">Vorschlag</div>
-                  <div class="responseText">
-                      ${responseText}
-                  </div>
-              </div>
-              <div>
-                  <div type="button" class="btn btn-ai-primary" id="uebernehmen">
-                      übernehmen
-                  </div>
-                  <div type="button" class="btn btn-ai-danger" id="test">
-                      ablehnen
-                  </div>
-              </div>
-          </div>`;
-
-          // Hinzufügen von Event Listener für die Antwort-Buttons
-          document.getElementById("test").addEventListener("click", (event) => {
-            this.rejectGeneration(event);
-          });
-          document
-            .getElementById("uebernehmen")
-            .addEventListener("click", (event) => {
-              this.transfer(event);
-            });
-        })
-        .catch((error) => {
-          console.error("Fehler beim Senden der Anfrage:", error);
-        });
-    } catch (error) {
-      console.error("Fehler beim Senden der Anfrage:", error);
-    }
+  updateBoxContent(box, responseText) {
+    box.innerHTML = `
+      <div class="ai-answer">
+        <div>
+          <div class="heading">Vorschlag</div>
+          <div class="responseText">${responseText}</div>
+        </div>
+        <div>
+          <button class="btn btn-ai-primary" id="uebernehmen">übernehmen</button>
+          <button class="btn btn-ai-danger" id="ablehnen">ablehnen</button>
+        </div>
+      </div>`;
+    box
+      .querySelector("#uebernehmen")
+      .addEventListener("click", () => this.transfer(box));
+    box
+      .querySelector("#ablehnen")
+      .addEventListener("click", () => this.rejectGeneration(box));
   }
 
   rejectGeneration(params) {
@@ -807,29 +779,6 @@ class DOMElement {
   }
 }
 
-class Regex {
-  static isValidTime(time) {
-    const regex = /^([01]\d|2[0-3]):([0-5]\d)(:([0-5]\d)(\.(\d{1,3}))?)?$/;
-    return regex.test(time);
-  }
-
-  static returnTimeMatch(string) {
-    const regex = /(\d{2}):(\d{2})/;
-    console.log(string);
-    return string.match(regex)[0];
-  }
-
-  static isValidDate(date) {
-    const regex = /^(0[1-9]|[12][0-9]|3[01])\.(0[1-9]|1[012])\.(\d{4})$/;
-    return regex.test(date);
-  }
-
-  static returnDateMatch(string) {
-    const regex = /\d{4}-[01]\d-[0-3]\d/;
-    console.log(string);
-    return string.match(regex)[0];
-  }
-}
 
 // -----------------------------
 // -----------------------------
@@ -839,14 +788,9 @@ class Regex {
 document.addEventListener("DOMContentLoaded", async () => {
   // Konfigurationsdatei laden
   const config = await ApiService.loadConfiguration();
-  console.log("config");
-  console.log(config);
 
-  // Konfigurationen laden
   AIEnhancedElement.configuration = ApiService.configuration["inputFunction"];
-  SectionSTT.configuration = ApiService.configuration["speechSectionFunction"]; 
-
-
+  SectionSTT.configuration = ApiService.configuration["speechSectionFunction"];
 
   // Funktion 1: AI Box zu Input Felder hinzufügen
   const aiEnhancedElements = document.querySelectorAll(
@@ -867,7 +811,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   // Funktion 2: Sprachunterstützung für alle Abschnitte hinzufügen
-  console.log(SectionSTT.configuration.activation_attribute);
   if (SectionSTT.configuration.activation_attribute) {
     const forms = document.querySelectorAll(
       `form[${SectionSTT.configuration.activation_attribute}]`
