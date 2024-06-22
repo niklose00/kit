@@ -628,9 +628,7 @@ class DOMElement {
   }
 }
 
-// -----------------------------
-// -----------------------------
-// -----------------------------
+
 
 // Initialisierung mit Konfigurationsladung
 document.addEventListener("DOMContentLoaded", async () => {
@@ -652,8 +650,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const isAIEnhancedElement = event.target.closest(
       `[${AIEnhancedElement.configuration.activation_attribute}]`
     );
-    const isInputElement = event.target.tagName === "INPUT";
-    if (!isAIEnhancedElement && isInputElement) {
+    const isBox = event.target.closest(
+      `.box`
+    );
+    const isInputElement = event.target.tagName === "INPUT" || event.target.tagName === "TEXTAREA";
+    if (!isAIEnhancedElement && !isBox) {
       AIEnhancedElement.hideAllBoxes();
     }
   });
