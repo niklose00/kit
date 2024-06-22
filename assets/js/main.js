@@ -219,321 +219,221 @@ class AIEnhancedElement {
 
 class SectionSTT {
   static configuration = null;
-  form = null;
-  inputJSON = []; // Speichert Daten für jedes Formularfeld zur späteren Verarbeitung
 
   constructor(form) {
     this.form = form;
+    this.inputJSON = [];
     this.init();
   }
 
-  /**
-   * Initialisiert die Konfiguration und fügt Aufnahme-Buttons zu jedem Abschnitt hinzu.
-   */
   async init() {
     if (!SectionSTT.configuration) {
-      // Stellt sicher, dass die Konfiguration nur einmal geladen wird
       SectionSTT.configuration = await ApiService.loadConfiguration();
     }
-    this.addButtonToSections();
+    this.addButtonsToSections();
   }
 
-  /**
-   * Geht alle Formularabschnitte durch und fügt ihnen Aufnahme-Buttons hinzu.
-   */
-  async addButtonToSections() {
-    // Selektiere alle Abschnitte im Formular, die für die STT-Funktion markiert sind
-    const fromSections = this.form.querySelectorAll(
+  addButtonsToSections() {
+    const formSections = this.form.querySelectorAll(
       `[${SectionSTT.configuration.section_identifier}]`
     );
-
-    // Erstellt am Ende jedes Abschnitts einen Aufnahme-Button
-    fromSections.forEach((formSection, index) => {
-      const button = this.createAndAddRecordingButton(formSection);
+    formSections.forEach((section, index) => {
+      const button = this.createRecordingButton();
+      section.appendChild(button.element);
       this.inputJSON[index] = {};
 
-      // Fügt einen Klick-Event-Listener hinzu, der die Aufnahme steuert
-      button.addEventListener("click", async (event) => {
-        await this.handleRecording(event, formSection, index);
-      });
+      button.addEventListener("click", (event) =>
+        this.handleRecording(event, section, index)
+      );
     });
   }
 
-  /**
-   * Startet oder stoppt die Aufnahme basierend auf dem aktuellen Zustand und verarbeitet die Daten
-   */
-  async handleRecording(event, formSection, index) {
-    const btnElement = event.target.closest("button");
-    const span = btnElement.querySelector("span");
-    const icon = btnElement.querySelector("i");
+  async handleRecording(event, section, index) {
+    const button = event.target.closest("button");
+    const [span, icon] = [
+      button.querySelector("span"),
+      button.querySelector("i"),
+    ];
 
-    // Prüfe, ob bereits aufgenommen wird, und starte oder stoppe die Aufnahme entsprechend.
     if (!this.recording) {
-      // Startet die Aufnahme
-      this.updateButtonUI(
-        span,
-        icon,
-        btnElement,
-        "Aufnahme beenden",
-        "fa-solid fa-stop",
-        "btn-record",
-        false
-      );
-      this.audio = new Audio();
-      this.audio.startRecording();
-      this.recording = true;
+      this.startRecording(span, icon, button);
     } else {
-      // Beendet die Aufnahme und verarbeitet die Audio-Daten
+      await this.stopRecording(span, icon, button, section, index);
+    }
+  }
+
+  startRecording(span, icon, button) {
+    this.updateButtonUI(
+      span,
+      icon,
+      button,
+      "Aufnahme beenden",
+      "fa-solid fa-stop",
+      "btn-record",
+      false
+    );
+    this.audio = new AudioRecorder();
+    this.audio.startRecording();
+    this.recording = true;
+  }
+
+  async stopRecording(span, icon, button, section, index) {
+    this.updateButtonUI(
+      span,
+      icon,
+      button,
+      "Verarbeite Eingabe",
+      "fa-solid fa-spinner fa-spin",
+      "btn-ai-primary",
+      false
+    );
+
+    try {
+      const blob = await this.audio.stopRecording();
+      const result = await ApiService.sendAudioForSTT(blob);
+      const text = JSON.parse(result.transcription).text;
+      this.processInstructions(section, text, index);
+    } catch (error) {
+      console.error("Fehler beim Hochladen:", error);
+    } finally {
       this.updateButtonUI(
         span,
         icon,
-        btnElement,
-        "Verarbeite Eingabe",
-        "fa-solid fa-spinner fa-spin",
+        button,
+        "Aufnahme Starten",
+        "fa-solid fa-microphone",
         "btn-ai-primary",
-        false
+        true
       );
-      this.audio.stopRecording(async (blob) => {
-        try {
-          const result = await ApiService.sendAudioForSTT(blob);
-          const text = JSON.parse(result.transcription).text;
-          console.log(text);
-
-          this.processInstructions(formSection, text, index);
-
-          // Aktualisiert den Button erst, nachdem processInstructions abgeschlossen ist
-          this.updateButtonUI(
-            span,
-            icon,
-            btnElement,
-            "Aufnahme Starten",
-            "iconSpeechRecording fa-solid fa-microphone",
-            "btn-ai-primary",
-            true
-          );
-        } catch (error) {
-          console.error("Fehler beim Hochladen:", error);
-          this.updateButtonUI(
-            span,
-            icon,
-            btnElement,
-            "Aufnahme Starten",
-            "iconSpeechRecording fa-solid fa-microphone",
-            "btn-ai-primary",
-            true
-          );
-        }
-      });
       this.recording = false;
     }
   }
 
-  /**
-   * Aktualisiert die Benutzeroberfläche des Buttons entsprechend dem aktuellen Zustand der Aufnahme
-   */
-  updateButtonUI(span, icon, button, text, iconClass, btnClassToAdd, add) {
+  updateButtonUI(span, icon, button, text, iconClass, btnClass, addClass) {
     span.innerText = text;
     icon.className = iconClass;
-    if (btnClassToAdd) {
-      if (add) {
-        button.classList.add(btnClassToAdd);
-        button.classList.remove(
-          btnClassToAdd === "btn-record" ? "btn-ai-primary" : "btn-record"
-        );
-      } else {
-        button.classList.add(btnClassToAdd);
-        button.classList.remove(
-          btnClassToAdd === "btn-ai-primary" ? "btn-record" : "btn-ai-primary"
-        );
-      }
-    }
+    button.classList.toggle(btnClass, addClass);
   }
 
-  /**
-   * Erstellt und fügt einen Aufnahme-Button zum übergebenen Formularabschnitt hinzu
-   */
-  createAndAddRecordingButton(formSection) {
+  createRecordingButton() {
     const buttonContainer = new DOMElement("div", {
       className: "d-flex gap-2 justify-content-center align-items-center",
     });
 
     const micIcon = new DOMElement("i", {
-      className: "iconSpeechRecording fa-solid fa-microphone",
+      className: "fa-solid fa-microphone",
       attributes: { style: "--fa-animation-duration: 2s;" },
     });
 
-    const text = new DOMElement("span", {
-      className: "",
-      content: "Aufnahme Starten",
-    });
+    const text = new DOMElement("span", { content: "Aufnahme Starten" });
 
-    buttonContainer.append(micIcon);
-    buttonContainer.append(text);
+    buttonContainer.append(micIcon).append(text);
 
-    const button = new DOMElement("button", {
+    return new DOMElement("button", {
       className: "btn btn-ai-primary aufnehmen",
       attributes: { type: "button", recording: false },
       content: buttonContainer,
     });
-
-    button.appendTo(formSection);
-    return button;
   }
 
-  /**
-   * Verarbeitet Texteingaben und sendet eine Anfrage an den Server, um eine verarbeitete Antwort zu erhalten.
-   * Diese Methode nimmt Text von einem Formularabschnitt, erstellt eine Anfrage und verarbeitet die Antwort,
-   * um die Formulareingaben basierend auf der Antwort zu aktualisieren
-   *
-   * @param {HTMLElement} formSection - Der Formularabschnitt, der die Input-Felder enthält
-   * @param {string} text - Der Text, der analysiert werden soll
-   * @param {number} index - Der Index des Formularabschnitts im Array `inputJSON`
-   */
-  processInstructions(formSection, text, index) {
-    const formSectionInputs = $(formSection).find("input, textarea");
-    let prompt = this.buildPrompt(formSectionInputs, text, index);
-    // Bereitet den Anfragekörper vor, der als JSON-String formatiert wird
-    const requestData = { action: "getAnswer", prompt: prompt };
-    ApiService.sendRequest("", {
-      method: "POST",
-      body: JSON.stringify(requestData),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
+  async processInstructions(section, text, index) {
+    const inputs = Array.from(section.querySelectorAll("input, textarea"));
+    const prompt = this.buildPrompt(inputs, text, index);
+    const requestData = { action: "getAnswer", prompt };
 
-      .then((responseData) => {
-        console.log(responseData);
-        let convertedJSON = SectionSTT.convertToJSON(
-          JSON.parse(responseData).choices[0].text
-        );
-        // Aktualisiert die Input-Felder des Formularabschnitts basierend auf der verarbeiteten Antwort
-        SectionSTT.fillInputs(convertedJSON, formSectionInputs);
-        // Speichert die konvertierten Daten im Array `inputJSON` für den aktuellen Index
-        this.inputJSON[index] = convertedJSON;
-      })
-      .catch((error) => {
-        console.error("Fehler beim Senden der Anfrage:", error);
+    try {
+      const response = await ApiService.sendRequest("", {
+        method: "POST",
+        body: JSON.stringify(requestData),
+        headers: { "Content-Type": "application/json" },
       });
-    return true;
+      const json = SectionSTT.convertToJSON(
+        JSON.parse(response).choices[0].text
+      );
+      SectionSTT.fillInputs(json, inputs);
+      this.inputJSON[index] = json;
+    } catch (error) {
+      console.error("Fehler beim Senden der Anfrage:", error);
+    }
   }
 
-  buildPrompt(formSectionInputs, text, index) {
-    let typeString = "";
-    let keyArray = [];
-    let targetJSONString = "{";
-    let textareas;
+  buildPrompt(inputs, text, index) {
+    const keys = inputs.map((input) => input.id);
+    inputs
+      .map((input) => `${input.id} ist ein ${input.tagName.toLowerCase()}`)
+      .join(", ");
+    const targetJSON = `{${keys
+      .map(
+        (key) =>
+          `"${key}": ${inputs
+            .find((input) => input.id === key)
+            .getAttribute("type")}`
+      )
+      .join(", ")}}`;
 
-    formSectionInputs.each(function () {
-      let key = $(this).attr("id");
-      keyArray.push(key);
-      typeString += `${key} ist ein ${String(this.tagName).toLowerCase()}, `;
-      textareas +=
-        String(this.tagName).toLowerCase() == "textarea" ? key + ", " : "";
-      targetJSONString += `"${key}": ${this.getAttribute("type")} \n`;
-    });
+    const existingJSON = this.inputJSON[index]
+      ? `Nutze die folgende JSON als Ausgangspunkt und korrigiere diese: ${JSON.stringify(
+          this.inputJSON[index]
+        )}.`
+      : "";
 
-    targetJSONString += "}";
+    return `
+      Aufgabenstellung: Analysiere den vorgelegten Text, um spezifische Informationen zu extrahieren, und trage diese Informationen in ein sorgfältig strukturiertes JSON-Objekt ein. Es ist entscheidend, dass das JSON-Objekt exakt dem spezifizierten Format folgt. Die Aufgabe erfordert die Extraktion von Informationen wie ${keys.join(
+        ", "
+      )} aus dem Text. Wenn bestimmte Informationen im Text nicht verfügbar sind, solltest du für die entsprechenden Felder im JSON-Objekt leere Strings ("") einsetzen, ohne irgendwelche Dummy-Daten zu verwenden.
+      ${existingJSON}
 
-    let keyString = keyArray.join(", ");
+      Gegebener Text: "${text}" 
+      Ziel: Generiere ein JSON-Objekt, das die aus dem Text extrahierten Informationen enthält. Achte darauf, das richtige Format für jeden Informationstyp zu verwenden, und lasse Felder, für die keine Informationen verfügbar sind, bewusst leer (""). Die Schlüssel des JSON-Objekts sind wie folgt definiert: ${keys.join(
+        ", "
+      )}
 
-    let prompt = `"
-    Aufgabenstellung: Analysiere den vorgelegten Text, um spezifische Informationen zu extrahieren, und trage diese Informationen in ein sorgfältig strukturiertes JSON-Objekt ein. Es ist entscheidend, dass das JSON-Objekt exakt dem spezifizierten Format folgt. Die Aufgabe erfordert die Extraktion von Informationen wie ${keyString}. aus dem Text. Wenn bestimmte Informationen im Text nicht verfügbar sind, solltest du für die entsprechenden Felder im JSON-Objekt leere Strings ("") einsetzen, ohne irgendwelche Dummy-Daten zu verwenden. 
-    ${
-      this.inputJSON[index] != {}
-        ? `Sollte es sich um Änderungwünsche handlen oder der gegebene Text auf die bereits ausgefüllten Informationen beziehen, nutze die folgende JSON: ${JSON.stringify(
-            this.inputJSON[index]
-          )}.Aktualisiere das JSON-Objekt basierend darauf, ob die Informationen aus dem Text Korrekturen oder Ergänzungen sind. Stelle sicher, dass das Ergebnis alle relevanten und korrekten Informationen in den spezifizierten Formaten enthält.`
-        : ""
-    }
-    
+      Es ist sehr wichtig, dass die Inhalte in der JSON das richtige Format haben. Der Inhalt der JSON muss in dem korrekten Format zurückgegeben werden. Für Typ Time gemäß der Spezifikation "HH:mm", wobei "HH" für die Stunden im Bereich von 00 bis 23 steht und "mm" für Minuten im Bereich von 00 bis 59. Für Typ Date in das korrekte Format gemäß der Spezifikation "yyyy-MM-dd", wobei "yyyy" für das Jahr im Bereich von 0 bis 3000 steht und "MM" für Monat im Bereich von 01 bis 12 und "dd" für Tage im Bereich 01 bis 31. Für den Typ number muss eine Zahl zurückgegeben werden.
+      Gefordertes JSON-Format mit Format-Typen: {${targetJSON}}
 
-    Gegebener Text: "${text}" 
-    Ziel: Ziel: Generiere ein JSON-Objekt, das die aus dem Text extrahierten Informationen enthält. Achte darauf, das richtige Format für jeden Informationstyp zu verwenden, und lasse Felder, für die keine Informationen verfügbar sind, bewusst leer (""). Die Schlüssel des JSON-Objekts sind wie folgt definiert: ${keyString}
-
-
-    Es ist sehr wichtig, dass die Inhalte in der JSON das richtige Format haben. Der Inhalt der JSON muss in dem korrekten Fomrat zurückgegeben werrden.Für Typ Time gemäß der Spezifikation "HH:mm", wobei "HH" für die Stunden im Bereich von 00 bis 23 steht und "mm" für Minuten im Bereich von 00 bis 59.  Für Typ Date in das korrekte Format gemäß der Spezifikation "yyyy-MM-dd", wobei yyyy" für das Jahr im Bereich von 0 bis 3000 steht und "MM" für Monat im Bereich von 01 bis 12 und "dd" für Tage im Bereich 01 bis 31. Für den Typ number muss eine Zahl zurückgegben werden.
-    Gefordertes JSON-Format mit Format-Typen: ${targetJSONString}
-   
-
-    ${
-      textareas == ""
-        ? `Verfasse für ${textareas} einen präzisen, zusammenhängenden Text. Der Text soll alle relevanten Informationen für das Eingabefeld in einer hochwertigen, gut formulierten Weise zusammenfassen.`
-        : ""
-    }
-
-   
-    
-    Anweisungen an die KI:
-    1. Beginne mit einer gründlichen Analyse des bereitgestellten Textes, um alle verfügbaren Informationen zu identifizieren.
-    2. Achte darauf, das JSON-Objekt mit den extrahierten Informationen korrekt zu befüllen, unter Beachtung des spezifischen Formats für jeden Informationstyp.
-    3. Für jedes Feld, für das keine Information aus dem Text extrahiert werden kann, füge einen leeren String ("") ein. Füge unter gar keinen Umständen Dummy Daten ein.
-    4. Stelle sicher, dass das finale JSON-Objekt syntaktisch korrekt ist und genau die extrahierten Informationen in der korrekten Struktur enthält.
-    5. Deine Rückgabe soll ein kurzer Text wie: "Hier ist ein Ergebnis: " und dann das JSON Objekt mit den befüllten Informationen in dem Text mit dem richtigen Format sein${targetJSONString}
-    "`;
-
-    return prompt;
+      Verfasse für die Textfelder präzise, zusammenhängende Texte, die alle relevanten Informationen enthalten.
+      
+      Anweisungen an die KI:
+      1. Beginne mit einer gründlichen Analyse des bereitgestellten Textes, um alle verfügbaren Informationen zu identifizieren.
+      2. Achte darauf, das JSON-Objekt mit den extrahierten Informationen korrekt zu befüllen, unter Beachtung des spezifischen Formats für jeden Informationstyp.
+      3. Für jedes Feld, für das keine Information aus dem Text extrahiert werden kann, füge einen leeren String ("") ein. Füge unter gar keinen Umständen Dummy Daten ein.
+      4. Stelle sicher, dass das finale JSON-Objekt syntaktisch korrekt ist und genau die extrahierten Informationen in der korrekten Struktur enthält.
+      5. Deine Rückgabe muss das JSON-Objekt mit den befüllten Informationen in dem Text mit dem richtigen Format sein.
+    `;
   }
 
   static convertToJSON(answer) {
-    function adjustStringForJSONParsing(inputString) {
-      inputString = inputString.trim();
-      // Entferne Zeilenumbrüche sowie die ersten und letzten Zeichen, die nicht zu einem JSON-Objekt gehören
-      inputString = inputString.replace(/(?:\r\n|\r|\n)/g, "");
-
-      // Filtert das JSON Objekt aus dem String heraus
-      inputString = inputString.replace(/^[^{]*|[^}]*$/g, "");
-
-      return inputString;
-    }
-
-    let adjustedString = adjustStringForJSONParsing(answer);
+    const adjustedString = answer
+      .trim()
+      .replace(/(?:\r\n|\r|\n)/g, "")
+      .replace(/^[^{]*|[^}]*$/g, "");
 
     try {
-      // Versuchen, den String zu einem JSON-Objekt zu konvertieren
-      let json = JSON.parse(adjustedString);
-      return json;
+      return JSON.parse(adjustedString);
     } catch (error) {
-      // TODO Fehlerbehandlung mit KI, falls der String nicht in ein JSON-Objekt konvertiert werden kann
       console.error("Fehler beim Konvertieren des Strings zu JSON:", error);
       return null;
     }
   }
 
-  // füllt die Eingabefelder mit Hilfe der JSON und markiert diese für 2 Sekunden
-  static fillInputs(json, fields) {
-    if (fields && typeof fields.each === "function") {
-      fields.each(function () {
-        const input = $(this);
-        const inputId = input.attr("id");
-        const newValue = json[inputId];
-        if (newValue !== undefined && input.val() !== newValue) {
-          input.val(newValue);
-          input.addClass("input-changed");
-          setTimeout(() => {
-            input.removeClass("input-changed");
-          }, 2000);
-        }
-      });
-    } else if (Array.isArray(fields)) {
-      fields.forEach((element) => {
-        const input = document.getElementById(element.id);
-        const newValue = json[element.id];
-        if (newValue && input.value !== newValue) {
-          input.value = newValue;
-          input.classList.add("input-changed");
-          setTimeout(() => {
-            input.classList.remove("input-changed");
-          }, 2000);
-        }
-      });
-    } else {
-      console.error("fields ist kein gültiges jQuery-Objekt oder Array.");
-    }
+  static fillInputs(json, inputs) {
+    console.log(json);
+    inputs.forEach((input) => {
+      const newValue = json[input.id];
+      if (
+        newValue !== undefined &&
+        newValue !== "" &&
+        input.value !== newValue
+      ) {
+        input.value = newValue;
+        input.classList.add("input-changed");
+        setTimeout(() => input.classList.remove("input-changed"), 2000);
+      }
+    });
   }
 }
 
-class Audio {
+class AudioRecorder {
   constructor() {
     this.mediaRecorder = null;
     this.audioChunks = [];
@@ -542,34 +442,23 @@ class Audio {
   async startRecording() {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     this.mediaRecorder = new MediaRecorder(stream);
-    this.mediaRecorder.ondataavailable = (event) => {
+    this.mediaRecorder.ondataavailable = (event) =>
       this.audioChunks.push(event.data);
-    };
-    this.mediaRecorder.onstop = () => {
-      const audioBlob = new Blob(this.audioChunks, {
-        type: "audio/wav; codecs=opus",
-      });
-      stream.getTracks().forEach((track) => track.stop());
-    };
-    this.audioChunks = [];
     this.mediaRecorder.start();
   }
 
-  stopRecording(callback) {
-    this.mediaRecorder.onstop = () => {
-      this.audioBlob = new Blob(this.audioChunks, {
-        type: "audio/wav; codecs=opus",
-      });
-      this.audioChunks = [];
-
-      // Callback-Funktion, wegen src Asynchronitätsproblem beim Aufnahme Button
-      if (callback && typeof callback === "function") {
-        callback(this.audioBlob);
-      }
-
-      this.mediaRecorder.stream.getTracks().forEach((track) => track.stop());
-    };
-    this.mediaRecorder.stop();
+  stopRecording() {
+    return new Promise((resolve, reject) => {
+      this.mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(this.audioChunks, {
+          type: "audio/wav; codecs=opus",
+        });
+        this.audioChunks = [];
+        resolve(audioBlob);
+      };
+      this.mediaRecorder.onerror = reject;
+      this.mediaRecorder.stop();
+    });
   }
 }
 
@@ -579,52 +468,15 @@ class ApiService {
     "http://localhost/composer_testing2/vendor/niklose00/kit/src/api.php";
 
   static async loadConfiguration() {
-    if (ApiService.configuration != {}) {
-      try {
-        const response = await fetch(
-          `../vendor/niklose00/kit/config/config.json`
-        );
-        if (!response.ok) {
-          throw new Error("Konfiguration konnte nicht geladen werden.");
-        }
-
-        const configurationData = await response.json();
-        ApiService.configuration = configurationData;
-      } catch (error) {
-        console.error("Fehler beim Laden der Konfiguration:", error);
-        throw error;
-      }
+    if (Object.keys(ApiService.configuration).length === 0) {
+      const response = await fetch(
+        "../vendor/niklose00/kit/config/config.json"
+      );
+      if (!response.ok)
+        throw new Error("Konfiguration konnte nicht geladen werden.");
+      ApiService.configuration = await response.json();
     }
-
     return ApiService.configuration;
-  }
-
-  static async sendRequestOLD(path, options = {}) {
-    const url = `${baseurl}/${path}`;
-    const fetchOptions = {
-      method: options.method ?? "POST",
-      headers: {
-        ...options.headers,
-        Accept: "application/json",
-      },
-      body: options.body,
-    };
-
-    // Entfernen des Content-Type Headers, wenn body ein FormData ist
-    if (options.body instanceof FormData) {
-      delete fetchOptions.headers["Content-Type"];
-    }
-
-    try {
-      const response = await fetch(url, fetchOptions);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
-    } catch (error) {
-      console.error("API Request failed:", error);
-      throw error;
-    }
   }
 
   static async sendRequest(path, options = {}) {
@@ -778,7 +630,6 @@ class DOMElement {
     return this;
   }
 }
-
 
 // -----------------------------
 // -----------------------------
