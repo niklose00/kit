@@ -464,8 +464,7 @@ class AudioRecorder {
 
 class ApiService {
   static configuration = {};
-  static baseurl =
-    "http://localhost/composer_testing2/vendor/niklose00/kit/src/api.php";
+ 
 
   static async loadConfiguration() {
     if (Object.keys(ApiService.configuration).length === 0) {
@@ -480,7 +479,7 @@ class ApiService {
   }
 
   static async sendRequest(path, options = {}) {
-    const url = new URL(`${ApiService.baseurl}${path ? `?${path}` : ""}`);
+    const url = new URL(`${ApiService.configuration["baseurl"]}/vendor/niklose00/kit/src/api.php${path ? `?${path}` : ""}`);
 
     const fetchOptions = {
       method: options.method ?? "POST",

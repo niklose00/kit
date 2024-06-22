@@ -1,5 +1,5 @@
 {
-    "baseurl": "http://localhost/ba/public/",
+    "baseurl": "http://localhost/composer_testing2/",
     "inputFunction": {
         "activation_attribute": "data-ai-enhanced",
         "tools": {
