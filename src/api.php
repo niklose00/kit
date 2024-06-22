@@ -6,29 +6,33 @@ use Orhanerday\OpenAi\OpenAi;
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
 
-function getOpenAiAnswer($prompt = "")
+function getOpenAiAnswer($prompt = "", $settings = [])
 {
     $openAiKey = getenv('OPENAI_API_KEY');  // Sicherer, den API-Key als Umgebungsvariable zu verwenden
     $openAi = new OpenAI($openAiKey);
 
-    $complete = $openAi->completion([
+    $defaultSettings = [
         'model' => 'gpt-3.5-turbo-instruct',
-        'prompt' => $prompt,
         'temperature' => 0.1,
         'max_tokens' => 1500,
         'frequency_penalty' => 0,
-        'presence_penalty' => 0.6,
+        'presence_penalty' => 0.1,
+    ];
+
+    $finalSettings = array_merge($defaultSettings, $settings);
+
+    $complete = $openAi->completion([
+        'model' => $finalSettings['model'],
+        'prompt' => $prompt,
+        'temperature' => $finalSettings['temperature'],
+        'max_tokens' => $finalSettings['max_tokens'],
+        'frequency_penalty' => $finalSettings['frequency_penalty'],
+        'presence_penalty' => $finalSettings['presence_penalty'],
     ]);
 
 
     return json_encode($complete);
 }
-
-function getSomeData($input)
-{
-    return json_encode($input);
-}
-
 
 
 function handleRequest()
@@ -38,8 +42,6 @@ function handleRequest()
         if (isset($_GET['action'])) {
             if ($_GET['action'] == 'getAnswer' && isset($_GET['prompt'])) {
                 echo getOpenAiAnswer($_GET['prompt']);
-            } else {
-                echo getSomeData("test");
             }
         } else {
             echo json_encode(["error" => "Missing action parameter"]);
@@ -49,8 +51,6 @@ function handleRequest()
         if (isset($input['action'])) {
             if ($input['action'] == 'getAnswer' && isset($input['prompt'])) {
                 echo getOpenAiAnswer($input['prompt']);
-            } else if ($input['action'] == 'speechToText') {
-                echo getSomeData($input["prompt"]);
             } else {
                 echo json_encode(["error" => "Invalid action or missing prompt"]);
             }
