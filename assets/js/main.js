@@ -464,8 +464,7 @@ class AudioRecorder {
 
 class ApiService {
   static configuration = {};
- 
-
+   
   static async loadConfiguration() {
     if (Object.keys(ApiService.configuration).length === 0) {
       const response = await fetch(
@@ -516,14 +515,13 @@ class ApiService {
     }
   }
 
-  // Spezifische Methode zum Hochladen von Audio-Dateien
   static async sendAudioForSTT(blob) {
     const formData = new FormData();
     formData.append("audio", blob, "aufnahme.wav");
 
     try {
       const response = await fetch(
-        "http://localhost/composer_testing2/vendor/niklose00/kit/src/upload.php",
+        `${ApiService.configuration["baseurl"]}/vendor/niklose00/kit/src/upload.php`,
         {
           method: "POST",
           body: formData,
@@ -542,7 +540,7 @@ class ApiService {
         "Es gab ein Problem mit dem Hochladen der Audio-Datei:",
         error
       );
-      throw error; // Fehler weiter werfen, um sie außerhalb der Methode behandeln zu können
+      throw error;
     }
   }
 }
