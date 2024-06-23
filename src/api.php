@@ -3,7 +3,8 @@ require_once __DIR__ . '/../../../../vendor/autoload.php';
 
 use Orhanerday\OpenAi\OpenAi;
 
-header('Access-Control-Allow-Origin: *');
+// header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Origin: http://localhost/.com');
 header('Content-Type: application/json');
 
 function getOpenAiAnswer($prompt = "", $settings = [])

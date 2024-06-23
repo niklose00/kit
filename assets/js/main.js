@@ -290,7 +290,7 @@ class SectionSTT {
 
     try {
       const blob = await this.audio.stopRecording();
-      const result = await ApiService.sendAudioForSTT(blob);
+      const result = await ApiService.transcriptAudio(blob);
       const text = JSON.parse(result.transcription).text;
       this.processInstructions(section, text, index);
     } catch (error) {
@@ -515,7 +515,7 @@ class ApiService {
     }
   }
 
-  static async sendAudioForSTT(blob) {
+  static async transcriptAudio(blob) {
     const formData = new FormData();
     formData.append("audio", blob, "aufnahme.wav");
 
