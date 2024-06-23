@@ -29,7 +29,7 @@
                 "category": "Hilfe",
                 "label": "Eingabe korrigieren",
                 "icon": "fa-check",
-                "prompt": "[erklaerung]. Korrigiere meine Eingabe anhand: {input}.",
+                "prompt": "[erklaerung]. Korrigiere meine Eingabe anhand: {input}. Gebe die richtig Antwort zurück",
                 "resources": [
                     "exampleText",
                     "erklaerung"
@@ -47,7 +47,10 @@
             }
         },
         "visuals": {
-            "aiEnhancedIcon": "fa-solid fa-wand-magic-sparkles"
+            "aiEnhancedIcon": {
+                "display": true,
+                "icon": "fa-solid fa-wand-magic-sparkles"
+            }
         }
     },
     "speechSectionFunction": {

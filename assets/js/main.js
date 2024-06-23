@@ -18,25 +18,34 @@ class AIEnhancedElement {
   }
 
   setupGraphics() {
+    const displayIcon =
+      AIEnhancedElement.configuration.visuals.aiEnhancedIcon.display;
     const parentDiv = this.element.parentNode;
-    const elementContainer = this.createElementContainer();
-    const iconElement = this.createIconElement();
+    const elementContainer = this.createElementContainer(displayIcon);
     const boxDiv = this.createBoxStructure();
 
-    elementContainer
-      .append(this.element)
-      .append(iconElement)
-      .appendTo(parentDiv);
+    if (displayIcon) {
+      const iconElement = this.createIconElement();
+
+      elementContainer
+        .append(this.element)
+        .append(iconElement)
+        .appendTo(parentDiv);
+    } else {
+      elementContainer.append(this.element).appendTo(parentDiv);
+    }
     parentDiv.insertBefore(boxDiv, parentDiv.children[3]);
   }
 
-  createElementContainer() {
-    return new DOMElement("div", { className: "input-with-icon p-l" });
+  createElementContainer(displayIcon) {
+    const containerClass = displayIcon ? "input-with-icon p-l" : "";
+    return new DOMElement("div", { className: containerClass });
   }
+  
 
   createIconElement() {
     return new DOMElement("i", {
-      className: `icon fas ${AIEnhancedElement.configuration.visuals.aiEnhancedIcon}`,
+      className: `icon fas ${AIEnhancedElement.configuration.visuals.aiEnhancedIcon.icon}`,
     });
   }
 
@@ -139,6 +148,12 @@ class AIEnhancedElement {
         if (prompt.includes(`[${resource}]`)) {
           // In prompt soll Resource eingebaut werden
           let baustein = input.attr(resource);
+
+          if (typeof baustein === "undefined") {
+            throw new Error(
+              `Baustein für die Ressource "${resource}" ist undefiniert. In der Konfigurationsdatei ist für die Funktion "${tool}" die Ressource "${resource}" registriert. Diese Ressource wurde in dem Eingabefled nicht implementiert`
+            );
+          }
 
           // Platzhalter durch Signalisator ersetzen
           prompt = prompt.replace(`[${resource}]`, baustein);
@@ -464,7 +479,7 @@ class AudioRecorder {
 
 class ApiService {
   static configuration = {};
-   
+
   static async loadConfiguration() {
     if (Object.keys(ApiService.configuration).length === 0) {
       const response = await fetch(
@@ -478,7 +493,11 @@ class ApiService {
   }
 
   static async sendRequest(path, options = {}) {
-    const url = new URL(`${ApiService.configuration["baseurl"]}/vendor/niklose00/kit/src/api.php${path ? `?${path}` : ""}`);
+    const url = new URL(
+      `${ApiService.configuration["baseurl"]}/vendor/niklose00/kit/src/api.php${
+        path ? `?${path}` : ""
+      }`
+    );
 
     const fetchOptions = {
       method: options.method ?? "POST",
@@ -628,8 +647,6 @@ class DOMElement {
   }
 }
 
-
-
 // Initialisierung mit Konfigurationsladung
 document.addEventListener("DOMContentLoaded", async () => {
   // Konfigurationsdatei laden
@@ -650,10 +667,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const isAIEnhancedElement = event.target.closest(
       `[${AIEnhancedElement.configuration.activation_attribute}]`
     );
-    const isBox = event.target.closest(
-      `.box`
-    );
-    const isInputElement = event.target.tagName === "INPUT" || event.target.tagName === "TEXTAREA";
+    const isBox = event.target.closest(`.box`);
+    const isInputElement =
+      event.target.tagName === "INPUT" || event.target.tagName === "TEXTAREA";
     if (!isAIEnhancedElement && !isBox) {
       AIEnhancedElement.hideAllBoxes();
     }
