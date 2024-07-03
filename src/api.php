@@ -2,10 +2,17 @@
 require_once __DIR__ . '/../../../../vendor/autoload.php';
 
 use Orhanerday\OpenAi\OpenAi;
+use Dotenv\Dotenv;
 
 // header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Origin: http://localhost/.com');
 header('Content-Type: application/json');
+
+$rootPath = realpath(__DIR__ . '/../../../../');
+
+// Laden der .env-Datei
+$dotenv = Dotenv::createImmutable($rootPath);
+$dotenv->load();
 
 function getOpenAiAnswer($prompt = "", $settings = [])
 {

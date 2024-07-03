@@ -2,6 +2,7 @@
     "baseurl": "http://localhost/composer_testing2/",
     "inputFunction": {
         "activation_attribute": "data-ai-enhanced",
+
         "tools": {
             "improve_writing": {
                 "category": "Auswahl bearbeiten",
@@ -9,6 +10,7 @@
                 "icon": "fa-chart-simple",
                 "prompt": "Schreibe folgenden Text in einem viel besseren Stil: {input}"
             },
+            
             "write_shorter": {
                 "category": "Auswahl bearbeiten",
                 "label": "Kürzer schreiben",

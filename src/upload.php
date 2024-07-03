@@ -2,9 +2,16 @@
 require_once __DIR__ . '/../../../../vendor/autoload.php';
 
 use Orhanerday\OpenAi\OpenAi;
+use Dotenv\Dotenv;
 
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
+
+$rootPath = realpath(__DIR__ . '/../../../../');
+
+// Laden der .env-Datei
+$dotenv = Dotenv::createImmutable($rootPath);
+$dotenv->load();
 
 $response = [];
 
@@ -50,7 +57,7 @@ echo json_encode($response);
 
 function speechToText($filePath)
 {
-    $openAiKey = getenv('OPENAI_API_KEY');  // Sicherer, den API-Key als Umgebungsvariable zu verwenden
+    $openAiKey = getenv('OPENAI_API_KEY');
     $openAi = new OpenAI($openAiKey);
 
     $c_file = curl_file_create($filePath);

@@ -11,7 +11,8 @@
     },
     "require": {
         "php": ">=7.4",
-        "orhanerday/open-ai": "^5.2"
+        "orhanerday/open-ai": "^5.2",
+        "vlucas/phpdotenv": "^5.6"
     },
     "authors": [
         {
