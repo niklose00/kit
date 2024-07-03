@@ -41,7 +41,6 @@ class AIEnhancedElement {
     const containerClass = displayIcon ? "input-with-icon p-l" : "";
     return new DOMElement("div", { className: containerClass });
   }
-  
 
   createIconElement() {
     return new DOMElement("i", {
@@ -479,6 +478,14 @@ class AudioRecorder {
 
 class ApiService {
   static configuration = {};
+  static baseurl = ApiService.getBaseUrl();
+
+  static getBaseUrl() {
+    const { protocol, host, pathname } = window.location;
+    const pathSegments = pathname.split("/").slice(0, -2);
+    const basePath = pathSegments.join("/");
+    return `${protocol}//${host}${basePath}`;
+  }
 
   static async loadConfiguration() {
     if (Object.keys(ApiService.configuration).length === 0) {
@@ -494,7 +501,7 @@ class ApiService {
 
   static async sendRequest(path, options = {}) {
     const url = new URL(
-      `${ApiService.configuration["baseurl"]}/vendor/niklose00/kit/src/api.php${
+      `${ApiService.baseurl}/vendor/niklose00/kit/src/api.php${
         path ? `?${path}` : ""
       }`
     );
@@ -540,7 +547,7 @@ class ApiService {
 
     try {
       const response = await fetch(
-        `${ApiService.configuration["baseurl"]}/vendor/niklose00/kit/src/upload.php`,
+        `${ApiService.baseurl}/vendor/niklose00/kit/src/upload.php`,
         {
           method: "POST",
           body: formData,
@@ -552,7 +559,6 @@ class ApiService {
       }
 
       const result = await response.json();
-      console.log(result);
       return result;
     } catch (error) {
       console.error(
