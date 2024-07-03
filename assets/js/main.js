@@ -490,7 +490,7 @@ class ApiService {
   static async loadConfiguration() {
     if (Object.keys(ApiService.configuration).length === 0) {
       const response = await fetch(
-        "../vendor/niklose00/kit/config/config.json"
+        `${ApiService.baseurl}/vendor/niklose00/kit/config/config.json`
       );
       if (!response.ok)
         throw new Error("Konfiguration konnte nicht geladen werden.");
