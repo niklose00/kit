@@ -16,7 +16,7 @@ $dotenv->load();
 
 function getOpenAiAnswer($prompt = "", $settings = [])
 {
-    $openAiKey = getenv('OPENAI_API_KEY');  // Sicherer, den API-Key als Umgebungsvariable zu verwenden
+    $openAiKey = $_ENV['OPENAI_API_KEY'];  // Sicherer, den API-Key als Umgebungsvariable zu verwenden
     $openAi = new OpenAI($openAiKey);
 
     $defaultSettings = [

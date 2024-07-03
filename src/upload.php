@@ -57,7 +57,7 @@ echo json_encode($response);
 
 function speechToText($filePath)
 {
-    $openAiKey = getenv('OPENAI_API_KEY');
+    $openAiKey = $_ENV['OPENAI_API_KEY'];
     $openAi = new OpenAI($openAiKey);
 
     $c_file = curl_file_create($filePath);
