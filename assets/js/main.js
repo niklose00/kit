@@ -283,19 +283,22 @@ class SectionSTT {
             `inputTextModal${index}`,
             this.joinLabels(section)
           );
-          
+
           this.form.appendChild(modal);
 
           buttonContainer.append(textButton.element);
 
           const confirmationButton = $(`#btn-confirm-inputTextModal${index}`);
           confirmationButton.on("click", () => {
-            const messageInput = $(`#message-textinputTextModal${index}`, modal).eq(0);
+            const messageInput = $(
+              `#message-textinputTextModal${index}`,
+              modal
+            ).eq(0);
             const text = messageInput.val();
-        
+
             this.processInstructions(section, text, index);
-            messageInput.val('');
-        });
+            messageInput.val("");
+          });
         }
 
         buttonContainer.appendTo(section);
@@ -419,9 +422,13 @@ class SectionSTT {
   }
 
   async processInstructions(section, text, index) {
-    const inputs = Array.from(section.querySelectorAll("input, textarea"));
+    const inputs = Array.from(
+      section.querySelectorAll("input, textarea, select")
+    );
     const prompt = this.buildPrompt(inputs, text, index);
     const requestData = { action: "getAnswer", prompt };
+
+    console.log(inputs);
 
     try {
       const response = await ApiService.sendRequest("", {
@@ -441,16 +448,27 @@ class SectionSTT {
 
   buildPrompt(inputs, text, index) {
     const keys = inputs.map((input) => input.id);
-    inputs
-      .map((input) => `${input.id} ist ein ${input.tagName.toLowerCase()}`)
+    const description = inputs
+      .map((input) => {
+        if (input.tagName.toLowerCase() === "select") {
+          const options = [...input.options]
+            .map((option) => `${option.text} (Wert: ${option.value})`)
+            .join(", ");
+          return `${
+            input.id
+          } ist ein ${input.tagName.toLowerCase()} mit den Optionen: ${options}`;
+        } else {
+          return `${input.id} ist ein ${input.tagName.toLowerCase()}`;
+        }
+      })
       .join(", ");
+
     const targetJSON = `{${keys
-      .map(
-        (key) =>
-          `"${key}": ${inputs
-            .find((input) => input.id === key)
-            .getAttribute("type")}`
-      )
+      .map((key) => {
+        const input = inputs.find((input) => input.id === key);
+        const type = input.getAttribute("type");
+        return `"${key}": ${type === null ? "text" : `"${type}"`}`;
+      })
       .join(", ")}}`;
 
     const existingJSON = this.inputJSON[index]
@@ -462,7 +480,7 @@ class SectionSTT {
     return `
       Aufgabenstellung: Analysiere den vorgelegten Text, um spezifische Informationen zu extrahieren, und trage diese Informationen in ein sorgfältig strukturiertes JSON-Objekt ein. Es ist entscheidend, dass das JSON-Objekt exakt dem spezifizierten Format folgt. Die Aufgabe erfordert die Extraktion von Informationen wie ${keys.join(
         ", "
-      )} aus dem Text. Wenn bestimmte Informationen im Text nicht verfügbar sind, solltest du für die entsprechenden Felder im JSON-Objekt leere Strings ("") einsetzen, ohne irgendwelche Dummy-Daten zu verwenden.
+      )} aus dem Text. Diese sind wie folgt formatiert: ${description}. Wenn es sich um ein select handelt muss der Wert zurückgegeben werden. Wenn bestimmte Informationen im Text nicht verfügbar sind, solltest du für die entsprechenden Felder im JSON-Objekt leere Strings ("") einsetzen, ohne irgendwelche Dummy-Daten zu verwenden.
       ${existingJSON}
 
       Gegebener Text: "${text}" 
@@ -478,9 +496,15 @@ class SectionSTT {
       Anweisungen an die KI:
       1. Beginne mit einer gründlichen Analyse des bereitgestellten Textes, um alle verfügbaren Informationen zu identifizieren.
       2. Achte darauf, das JSON-Objekt mit den extrahierten Informationen korrekt zu befüllen, unter Beachtung des spezifischen Formats für jeden Informationstyp.
-      3. Für jedes Feld, für das keine Information aus dem Text extrahiert werden kann, füge einen leeren String ("") ein. Füge unter gar keinen Umständen Dummy Daten ein.
-      4. Stelle sicher, dass das finale JSON-Objekt syntaktisch korrekt ist und genau die extrahierten Informationen in der korrekten Struktur enthält.
-      5. Deine Rückgabe muss das JSON-Objekt mit den befüllten Informationen in dem Text mit dem richtigen Format sein.
+    3. Wenn es sich um ein select handelt, darfst du nur den Wert zu der passenden Option einsetzen. Durchsuche die Optionen und gebe den Wert zurück, der am besten passt. Hier sind die Optionen und ihre Werte:
+        - Hersteller auswählen: 0
+        - Hersteller A: 1
+        - Hersteller B: 2
+        - Hersteller C: 3
+    Beispiel: Wenn im Text "Hersteller A" steht, muss der Wert 1 im JSON-Objekt stehen.
+      4. Für jedes Feld, für das keine Information aus dem Text extrahiert werden kann, füge einen leeren String ("") ein. Füge unter gar keinen Umständen Dummy Daten ein.
+      5. Stelle sicher, dass das finale JSON-Objekt syntaktisch korrekt ist und genau die extrahierten Informationen in der korrekten Struktur enthält.
+      6. Deine Rückgabe muss das JSON-Objekt mit den befüllten Informationen in dem Text mit dem richtigen Format sein.
     `;
   }
 
@@ -502,6 +526,7 @@ class SectionSTT {
     console.log(json);
     inputs.forEach((input) => {
       const newValue = json[input.id];
+      console.log(input.value);
       if (
         newValue !== undefined &&
         newValue !== "" &&
