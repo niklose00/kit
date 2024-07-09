@@ -192,3 +192,20 @@ input[type="date"] {
 .visible {
     display: none;
 }
+
+.inputButtonContainer{
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+
+}
+
+.inputButtonContainer > :first-child {
+    flex: 2; /* 2/3 des Containers */
+    background-color: lightblue; /* Zum Visualisieren */
+}
+
+.inputButtonContainer > :last-child {
+    flex: 1; /* 1/3 des Containers */
+    background-color: lightgreen; /* Zum Visualisieren */
+}

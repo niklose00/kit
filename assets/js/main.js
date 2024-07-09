@@ -251,14 +251,57 @@ class SectionSTT {
     const formSections = this.form.querySelectorAll(
       `[${SectionSTT.configuration.section_identifier}]`
     );
-    formSections.forEach((section, index) => {
-      const button = this.createRecordingButton();
-      section.appendChild(button.element);
-      this.inputJSON[index] = {};
 
-      button.addEventListener("click", (event) =>
-        this.handleRecording(event, section, index)
-      );
+    formSections.forEach((section, index) => {
+      if (SectionSTT.configuration.input_types != undefined) {
+        const buttonContainer = new DOMElement("div", {
+          className: "inputButtonContainer",
+        });
+
+        if (SectionSTT.configuration.input_types.includes("audio")) {
+          const audioButton = this.createRecordingButton();
+
+          buttonContainer.append(audioButton.element);
+
+          audioButton.addEventListener("click", (event) =>
+            this.handleRecording(event, section, index)
+          );
+        }
+        if (SectionSTT.configuration.input_types.includes("text")) {
+          const textButton = DOMElement.createButton(
+            "Text Eingeben",
+            "fa-solid fa-file-import",
+            "btn-ai-primary",
+            {
+              type: "button",
+              "data-bs-toggle": "modal",
+              "data-bs-target": `#inputTextModal${index}`,
+            }
+          );
+
+          const modal = DOMElement.createBootstrapModal(
+            `inputTextModal${index}`
+          );
+          this.form.appendChild(modal);
+
+          buttonContainer.append(textButton.element);
+
+
+
+          const confirmationButton = $(`#btn-confirm-inputTextModal${index}`);
+          confirmationButton.on("click", () => {
+            let text = $(modal).find(`#message-textinputTextModal${index}`).eq(0).val();
+            this.processInstructions(section, text, index);
+          });
+        }
+
+        buttonContainer.appendTo(section);
+        this.inputJSON[index] = {};
+      } else {
+        console.error(
+          "Es sind keine Typen für die Eingabe der SectionSTT Funktion definiert. Füge input_types der Konfigurationsdatei hinzu."
+        );
+      }
     });
   }
 
@@ -274,6 +317,11 @@ class SectionSTT {
     } else {
       await this.stopRecording(span, icon, button, section, index);
     }
+  }
+
+  handleTextInput(event, section, index) {
+    const text = $("inputTextModal").val();
+    console.log(text);
   }
 
   startRecording(span, icon, button) {
@@ -488,8 +536,12 @@ class ApiService {
   }
 
   static async loadConfiguration() {
+    console.log(ApiService.baseurl);
     if (Object.keys(ApiService.configuration).length === 0) {
       const response = await fetch(
+        `${ApiService.baseurl}/vendor/niklose00/kit/config/config.json`
+      );
+      console.log(
         `${ApiService.baseurl}/vendor/niklose00/kit/config/config.json`
       );
       if (!response.ok)
@@ -651,12 +703,65 @@ class DOMElement {
 
     return this;
   }
+
+  static createButton(text, icon, className, attributeObject) {
+    const buttonContainer = new DOMElement("div", {
+      className: "d-flex gap-2 justify-content-center align-items-center",
+    });
+
+    const micIcon = new DOMElement("i", {
+      className: icon,
+    });
+
+    const buttonText = new DOMElement("span", { content: text });
+
+    buttonContainer.append(micIcon).append(buttonText);
+
+    return new DOMElement("button", {
+      className: `btn ${className}`,
+      attributes: attributeObject,
+      content: buttonContainer,
+    });
+  }
+
+  static createBootstrapModal(id) {
+    const modalTemplate = `
+      <div class="modal fade" id="${id}" tabindex="-1" aria-labelledby="${id}Label" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="${id}Label">Texteingabe</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <form>
+                <div class="mb-3">
+                  <label for="message-text${id}" class="col-form-label">Text:</label>
+                  <textarea class="form-control" id="message-text${id}" rows="10" cols="50"></textarea>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+              <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="btn-confirm-${id}">Bestätigen</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = modalTemplate.trim();
+
+    return tempDiv.firstChild;
+  }
 }
 
 // Initialisierung mit Konfigurationsladung
 document.addEventListener("DOMContentLoaded", async () => {
   // Konfigurationsdatei laden
   const config = await ApiService.loadConfiguration();
+  console.log(config);
 
   AIEnhancedElement.configuration = ApiService.configuration["inputFunction"];
   SectionSTT.configuration = ApiService.configuration["speechSectionFunction"];

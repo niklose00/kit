@@ -1,7 +1,6 @@
 {
     "inputFunction": {
         "activation_attribute": "data-ai-enhanced",
-
         "tools": {
             "improve_writing": {
                 "category": "Auswahl bearbeiten",
@@ -9,7 +8,6 @@
                 "icon": "fa-chart-simple",
                 "prompt": "Schreibe folgenden Text in einem viel besseren Stil: {input}"
             },
-            
             "write_shorter": {
                 "category": "Auswahl bearbeiten",
                 "label": "Kürzer schreiben",
@@ -45,6 +43,15 @@
                     "exampleText",
                     "erklaerung"
                 ]
+            },
+            "company_email_style": {
+                "category": "Kommunikation",
+                "label": "Unternehmensstil anwenden",
+                "icon": "fa-regular fa-comment",
+                "prompt": "Schreibe den folgenden Text um, sodass er den Stil eines formellen und professionellen Unternehmensberichts widerspiegelt. Verwende präzise und sachliche Fachterminologie. Strukturiere den Text in kurzen, prägnanten Absätzen. Die Zielgruppe ist [zielgruppe]. Originaltext: {input}",
+                "resources": [
+                    "zielgruppe"
+                ]
             }
         },
         "visuals": {
@@ -56,6 +63,7 @@
     },
     "speechSectionFunction": {
         "activation_attribute": "section-stt",
-        "section_identifier": "form-section"
+        "section_identifier": "form-section",
+        "input_types" : ["audio", "text"]
     }
 }
