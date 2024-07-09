@@ -290,12 +290,12 @@ class SectionSTT {
 
           const confirmationButton = $(`#btn-confirm-inputTextModal${index}`);
           confirmationButton.on("click", () => {
-            let text = $(modal)
-              .find(`#message-textinputTextModal${index}`)
-              .eq(0)
-              .val();
+            const messageInput = $(`#message-textinputTextModal${index}`, modal).eq(0);
+            const text = messageInput.val();
+        
             this.processInstructions(section, text, index);
-          });
+            messageInput.val('');
+        });
         }
 
         buttonContainer.appendTo(section);
