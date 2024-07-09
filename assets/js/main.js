@@ -280,8 +280,10 @@ class SectionSTT {
           );
 
           const modal = DOMElement.createBootstrapModal(
-            `inputTextModal${index}`
+            `inputTextModal${index}`,
+            this.joinLabels(section)
           );
+          
           this.form.appendChild(modal);
 
           buttonContainer.append(textButton.element);
@@ -304,6 +306,23 @@ class SectionSTT {
         );
       }
     });
+  }
+
+  joinLabels(section) {
+    function removeSpecialCharacters(text) {
+      return text.replace(/[:]/g, "");
+    }
+    const labels = [...section.querySelectorAll("label")].map((label) =>
+      removeSpecialCharacters(label.innerHTML)
+    );
+
+    if (labels.length === 0) return "";
+    if (labels.length === 1) return labels[0];
+    if (labels.length === 2) return labels.join(" und ");
+
+    const allButLast = labels.slice(0, -1).join(", ");
+    const lastLabel = labels[labels.length - 1];
+    return `${allButLast} und ${lastLabel}`;
   }
 
   async handleRecording(event, section, index) {
@@ -730,7 +749,7 @@ class DOMElement {
     });
   }
 
-  static createBootstrapModal(id) {
+  static createBootstrapModal(id, information) {
     const modalTemplate = `
       <div class="modal fade" id="${id}" tabindex="-1" aria-labelledby="${id}Label" aria-hidden="true">
         <div class="modal-dialog">
@@ -741,6 +760,9 @@ class DOMElement {
             </div>
             <div class="modal-body">
               <form>
+                <div class="mb-3">
+                  <b>Es werden folgende Informationen verlangt: </b><br/>${information}
+                </div>
                 <div class="mb-3">
                   <label for="message-text${id}" class="col-form-label">Text:</label>
                   <textarea class="form-control" id="message-text${id}" rows="10" cols="50"></textarea>
