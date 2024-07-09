@@ -269,7 +269,7 @@ class SectionSTT {
         }
         if (SectionSTT.configuration.input_types.includes("text")) {
           const textButton = DOMElement.createButton(
-            "Text Eingeben",
+            "",
             "fa-solid fa-file-import",
             "btn-ai-primary",
             {
@@ -286,11 +286,12 @@ class SectionSTT {
 
           buttonContainer.append(textButton.element);
 
-
-
           const confirmationButton = $(`#btn-confirm-inputTextModal${index}`);
           confirmationButton.on("click", () => {
-            let text = $(modal).find(`#message-textinputTextModal${index}`).eq(0).val();
+            let text = $(modal)
+              .find(`#message-textinputTextModal${index}`)
+              .eq(0)
+              .val();
             this.processInstructions(section, text, index);
           });
         }
@@ -715,7 +716,12 @@ class DOMElement {
 
     const buttonText = new DOMElement("span", { content: text });
 
-    buttonContainer.append(micIcon).append(buttonText);
+    if (icon != "") {
+      buttonContainer.append(micIcon);
+    }
+    if (text != "") {
+      buttonContainer.append(buttonText);
+    }
 
     return new DOMElement("button", {
       className: `btn ${className}`,
