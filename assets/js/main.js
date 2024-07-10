@@ -602,7 +602,7 @@ class ApiService {
 
   static async sendRequest(path, options = {}) {
     const url = new URL(
-      `${ApiService.baseurl}/vendor/niklose00/kit/src/api.php${
+      `${ApiService.baseurl}/vendor/niklose00/kit/src/gpt.php${
         path ? `?${path}` : ""
       }`
     );
@@ -648,7 +648,7 @@ class ApiService {
 
     try {
       const response = await fetch(
-        `${ApiService.baseurl}/vendor/niklose00/kit/src/upload.php`,
+        `${ApiService.baseurl}/vendor/niklose00/kit/src/whisper.php`,
         {
           method: "POST",
           body: formData,
