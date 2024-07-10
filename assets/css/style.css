@@ -213,11 +213,15 @@ input[type="date"] {
     height: 40px;
 }
 
-.inputButtonContainer> :first-child {
+.inputButtonContainer > :first-child {
     flex: 1;
 }
 
-.inputButtonContainer> :last-child {
+.inputButtonContainer > :last-child {
     flex: 0 0 auto;
     width: 40px;
+}
+
+.inputButtonContainer > :only-child {
+    flex: 1;
 }

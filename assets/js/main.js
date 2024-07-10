@@ -258,6 +258,8 @@ class SectionAi {
           className: "inputButtonContainer",
         });
 
+        console.log(SectionAi.configuration.input_types)
+
         if (SectionAi.configuration.input_types.includes("audio")) {
           const audioButton = this.createRecordingButton();
 
@@ -268,8 +270,10 @@ class SectionAi {
           );
         }
         if (SectionAi.configuration.input_types.includes("text")) {
+          const buttonText = !SectionAi.configuration.input_types.includes("audio") ? "Text eingeben" : "";
+
           const textButton = DOMElement.createButton(
-            "",
+            buttonText,
             "fa-solid fa-file-import",
             "btn-ai-primary",
             {
@@ -278,6 +282,7 @@ class SectionAi {
               "data-bs-target": `#inputTextModal${index}`,
             }
           );
+         
 
           const modal = DOMElement.createBootstrapModal(
             `inputTextModal${index}`,

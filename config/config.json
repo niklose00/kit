@@ -64,6 +64,6 @@
     "sectionAI": {
         "activation_attribute": "section-stt",
         "section_identifier": "form-section",
-        "input_types" : ["audio", "text"]
+        "input_types" : ["audio","text"] 
     }
 }
