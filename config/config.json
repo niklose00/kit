@@ -1,5 +1,5 @@
 {
-    "inputFunction": {
+    "inputAI": {
         "activation_attribute": "data-ai-enhanced",
         "tools": {
             "improve_writing": {
@@ -61,7 +61,7 @@
             }
         }
     },
-    "speechSectionFunction": {
+    "sectionAI": {
         "activation_attribute": "section-stt",
         "section_identifier": "form-section",
         "input_types" : ["audio", "text"]

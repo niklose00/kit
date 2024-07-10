@@ -231,7 +231,7 @@ class AIEnhancedElement {
   }
 }
 
-class SectionSTT {
+class SectionAi {
   static configuration = null;
 
   constructor(form) {
@@ -241,24 +241,24 @@ class SectionSTT {
   }
 
   async init() {
-    if (!SectionSTT.configuration) {
-      SectionSTT.configuration = await ApiService.loadConfiguration();
+    if (!SectionAi.configuration) {
+      SectionAi.configuration = await ApiService.loadConfiguration();
     }
     this.addButtonsToSections();
   }
 
   addButtonsToSections() {
     const formSections = this.form.querySelectorAll(
-      `[${SectionSTT.configuration.section_identifier}]`
+      `[${SectionAi.configuration.section_identifier}]`
     );
 
     formSections.forEach((section, index) => {
-      if (SectionSTT.configuration.input_types != undefined) {
+      if (SectionAi.configuration.input_types != undefined) {
         const buttonContainer = new DOMElement("div", {
           className: "inputButtonContainer",
         });
 
-        if (SectionSTT.configuration.input_types.includes("audio")) {
+        if (SectionAi.configuration.input_types.includes("audio")) {
           const audioButton = this.createRecordingButton();
 
           buttonContainer.append(audioButton.element);
@@ -267,7 +267,7 @@ class SectionSTT {
             this.handleRecording(event, section, index)
           );
         }
-        if (SectionSTT.configuration.input_types.includes("text")) {
+        if (SectionAi.configuration.input_types.includes("text")) {
           const textButton = DOMElement.createButton(
             "",
             "fa-solid fa-file-import",
@@ -305,7 +305,7 @@ class SectionSTT {
         this.inputJSON[index] = {};
       } else {
         console.error(
-          "Es sind keine Typen für die Eingabe der SectionSTT Funktion definiert. Füge input_types der Konfigurationsdatei hinzu."
+          "Es sind keine Typen für die Eingabe der SectionAi Funktion definiert. Füge input_types der Konfigurationsdatei hinzu."
         );
       }
     });
@@ -436,10 +436,10 @@ class SectionSTT {
         body: JSON.stringify(requestData),
         headers: { "Content-Type": "application/json" },
       });
-      const json = SectionSTT.convertToJSON(
+      const json = SectionAi.convertToJSON(
         JSON.parse(response).choices[0].text
       );
-      SectionSTT.fillInputs(json, inputs);
+      SectionAi.fillInputs(json, inputs);
       this.inputJSON[index] = json;
     } catch (error) {
       console.error("Fehler beim Senden der Anfrage:", error);
@@ -462,6 +462,7 @@ class SectionSTT {
         }
       })
       .join(", ");
+   
 
     const targetJSON = `{${keys
       .map((key) => {
@@ -816,8 +817,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const config = await ApiService.loadConfiguration();
   console.log(config);
 
-  AIEnhancedElement.configuration = ApiService.configuration["inputFunction"];
-  SectionSTT.configuration = ApiService.configuration["speechSectionFunction"];
+  AIEnhancedElement.configuration = ApiService.configuration["inputAI"];
+  SectionAi.configuration = ApiService.configuration["sectionAI"];
 
   // Funktion 1: AI Box zu Input Felder hinzufügen
   const aiEnhancedElements = document.querySelectorAll(
@@ -840,12 +841,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   // Funktion 2: Sprachunterstützung für alle Abschnitte hinzufügen
-  if (SectionSTT.configuration.activation_attribute) {
+  if (SectionAi.configuration.activation_attribute) {
     const forms = document.querySelectorAll(
-      `form[${SectionSTT.configuration.activation_attribute}]`
+      `form[${SectionAi.configuration.activation_attribute}]`
     );
     forms.forEach((form) => {
-      new SectionSTT(form);
+      new SectionAi(form);
     });
   }
 });
