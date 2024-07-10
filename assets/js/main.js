@@ -258,7 +258,7 @@ class SectionAi {
           className: "inputButtonContainer",
         });
 
-        console.log(SectionAi.configuration.input_types)
+        console.log(SectionAi.configuration.input_types);
 
         if (SectionAi.configuration.input_types.includes("audio")) {
           const audioButton = this.createRecordingButton();
@@ -270,7 +270,11 @@ class SectionAi {
           );
         }
         if (SectionAi.configuration.input_types.includes("text")) {
-          const buttonText = !SectionAi.configuration.input_types.includes("audio") ? "Text eingeben" : "";
+          const buttonText = !SectionAi.configuration.input_types.includes(
+            "audio"
+          )
+            ? "Text eingeben"
+            : "";
 
           const textButton = DOMElement.createButton(
             buttonText,
@@ -282,7 +286,6 @@ class SectionAi {
               "data-bs-target": `#inputTextModal${index}`,
             }
           );
-         
 
           const modal = DOMElement.createBootstrapModal(
             `inputTextModal${index}`,
@@ -345,11 +348,6 @@ class SectionAi {
     } else {
       await this.stopRecording(span, icon, button, section, index);
     }
-  }
-
-  handleTextInput(event, section, index) {
-    const text = $("inputTextModal").val();
-    console.log(text);
   }
 
   startRecording(span, icon, button) {
@@ -430,6 +428,7 @@ class SectionAi {
     const inputs = Array.from(
       section.querySelectorAll("input, textarea, select")
     );
+
     const prompt = this.buildPrompt(inputs, text, index);
     const requestData = { action: "getAnswer", prompt };
 
@@ -467,7 +466,6 @@ class SectionAi {
         }
       })
       .join(", ");
-   
 
     const targetJSON = `{${keys
       .map((key) => {
