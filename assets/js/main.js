@@ -218,7 +218,20 @@ class AIEnhancedElement {
     );
     const text = $(visibleBox).find(".responseText")[0].innerText;
 
-    $(visibleBox).parent().find("input").val(text);
+    const inputElement = $(visibleBox).parent().find("input").eq(0);
+    const textareaElement = $(visibleBox).parent().find("textarea").eq(0);
+
+    if (inputElement.length > 0) {
+      console.log(inputElement);
+      inputElement.val(text);
+    } else if (textareaElement.length > 0) {
+      console.log(textareaElement);
+      textareaElement.val(text);
+    } else {
+      console.log("Kein input oder textarea Element gefunden");
+    }
+
+    
     const boxDiv = this.createBoxStructure();
     visibleBox.replaceWith(boxDiv);
   }
@@ -284,6 +297,7 @@ class SectionAi {
               type: "button",
               "data-bs-toggle": "modal",
               "data-bs-target": `#inputTextModal${index}`,
+              id: `buttonInputTextModal${index}`,
             }
           );
 
@@ -381,6 +395,8 @@ class SectionAi {
       const result = await ApiService.transcriptAudio(blob);
       const text = JSON.parse(result.transcription).text;
       this.processInstructions(section, text, index);
+
+      console.log(text);
     } catch (error) {
       console.error("Fehler beim Hochladen:", error);
     } finally {
@@ -500,12 +516,12 @@ class SectionAi {
       Anweisungen an die KI:
       1. Beginne mit einer gründlichen Analyse des bereitgestellten Textes, um alle verfügbaren Informationen zu identifizieren.
       2. Achte darauf, das JSON-Objekt mit den extrahierten Informationen korrekt zu befüllen, unter Beachtung des spezifischen Formats für jeden Informationstyp.
-    3. Wenn es sich um ein select handelt, darfst du nur den Wert zu der passenden Option einsetzen. Durchsuche die Optionen und gebe den Wert zurück, der am besten passt. Hier sind die Optionen und ihre Werte:
-        - Hersteller auswählen: 0
-        - Hersteller A: 1
-        - Hersteller B: 2
-        - Hersteller C: 3
-    Beispiel: Wenn im Text "Hersteller A" steht, muss der Wert 1 im JSON-Objekt stehen.
+      3. Wenn es sich um ein select handelt, darfst du nur den Wert zu der passenden Option einsetzen. Durchsuche die Optionen und gebe den Wert zurück, der am besten passt. Sollte keine passende Optioin gefunden werden, gebe einen leere String zurück. Hier sind die Optionen und ihre Werte:
+          - Hersteller auswählen: 0
+          - Hersteller A: 1
+          - Hersteller B: 2
+          - Hersteller C: 3
+      Beispiel: Wenn im Text "Hersteller A" steht, muss der Wert 1 im JSON-Objekt stehen. Wenn keine passende Option gefunden wird, gebe "" im JOSN-Objekt zurück. Wenn die Eingabe beispielsweise Hersteller D ist, dan gebe "" zurück. Wenn in der Eingabe keine Angaben gemacht werden, gebe "" im JSON-Objekt zurück.
       4. Für jedes Feld, für das keine Information aus dem Text extrahiert werden kann, füge einen leeren String ("") ein. Füge unter gar keinen Umständen Dummy Daten ein.
       5. Stelle sicher, dass das finale JSON-Objekt syntaktisch korrekt ist und genau die extrahierten Informationen in der korrekten Struktur enthält.
       6. Deine Rückgabe muss das JSON-Objekt mit den befüllten Informationen in dem Text mit dem richtigen Format sein.
