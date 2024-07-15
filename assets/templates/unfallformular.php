@@ -289,30 +289,6 @@
             </div>
         </div>
 
-        <!-- Bemerkungen: -->
-        <div class="my-5" form-section>
-            <h4>Bemerkungen:</h4>
-            <div class="row my-4">
-                <div class="form-group col-sm">
-                    <label for="zeuge1_schilderung">Weitere relevante Informationen oder Beobachtungen:</label>
-                    <textarea class="form-control" id="zeuge1_schilderung" name="zeuge1_schilderung" rows="3"></textarea>
-                </div>
-            </div>
-        </div>
-
-        <!-- Fotografische Beweise: -->
-        <div class="my-5">
-            <h4>Fotografische Beweise:</h4>
-            <div class="row my-4">
-                <div class="form-group col-sm">
-                    <label for="zeuge1_schilderung">Bitte fügen Sie Fotos vom Unfallort, dem Fluggerät und den Verletzungen bei, falls vorhanden.</label>
-                    <div class="input-group mb-3">
-                        <input type="file" class="form-control" id="inputGroupFile02">
-                        <label class="input-group-text" for="inputGroupFile02">Upload</label>
-                    </div>
-                </div>
-            </div>
-        </div>
         <button type="submit" class="btn btn-primary">Absenden</button>
 
 </form>
