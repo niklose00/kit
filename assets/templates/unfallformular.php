@@ -1,5 +1,7 @@
 <form section-stt>
-
+    <h2 class="mb-3">
+        Unfallformular
+    </h2>
     <div class="my-5" form-section>
 
         <!-- Allgemeine Angaben -->
@@ -169,24 +171,14 @@
             <h4>Verletzungen</h4>
             <div class="row mt-2 mb-4">
                 <div class="form-group col-sm">
-                    <label for="pilot_vorname">Beschreibung der Verletzungen (falls zutreffend):</label>
-                    <input type="time" data-provide="datepicker" class="form-control" id="pilot_vorname">
+                    <label for="beschreibung_verletzung">Beschreibung der Verletzungen (falls zutreffend):</label>
+                    <input class="form-control" id="beschreibung_verletzung">
                 </div>
             </div>
             <div class="row my-4">
                 <div class="form-group col-sm">
-                    <label for="pilot_wohnort">Erste Hilfe Maßnahmen (wer, was, wann?):</label>
-                    <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
-                </div>
-            </div>
-            <div class="row my-4">
-                <div class="form-group col-sm">
-                    <label for="pilot_wohnort">Wurde medizinische Hilfe in Anspruch genommen?:</label>
-
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault">
-                        <label class="form-check-label" for="flexSwitchCheckDefault">Ja, es wurde medizinische Hilfe in Anspruch genommen</label>
-                    </div>
+                    <label for="erste_hilfeaßnahmen">Erste Hilfe Maßnahmen (wer, was, wann?):</label>
+                    <textarea class="form-control" id="erste_hilfeaßnahmen" rows="3"></textarea>
                 </div>
             </div>
         </div>
