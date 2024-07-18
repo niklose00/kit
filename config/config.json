@@ -52,6 +52,12 @@
                 "resources": [
                     "zielgruppe"
                 ]
+            },
+            "write_email_from_bullets": {
+                "category": "Hilfe",
+                "label": "Email aus Stichpunkten verfassen",
+                "icon": "fa-solid fa-solid fa-pen",
+                "prompt": "Schreibe aus den folgenden Stichpunkten eine kurze und professionelle EMail. Die EMail muss alle wichtigen Informationen enthalten und diese übersichtlich darstellen: {input}"
             }
         },
         "visuals": {
@@ -64,6 +70,9 @@
     "sectionAI": {
         "activation_attribute": "section-stt",
         "section_identifier": "form-section",
-        "input_types" : ["audio","text"] 
+        "input_types": [
+            "audio",
+            "text"
+        ]
     }
 }
