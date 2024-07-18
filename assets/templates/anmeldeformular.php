@@ -45,13 +45,5 @@
             </div>
         </div>
 
-
-
-
-
-
-
-        <button type="submit" class="btn btn-primary">Absenden</button>
-
     </form>
 </div>
