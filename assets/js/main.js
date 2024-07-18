@@ -222,10 +222,8 @@ class AIEnhancedElement {
     const textareaElement = $(visibleBox).parent().find("textarea").eq(0);
 
     if (inputElement.length > 0) {
-      console.log(inputElement);
       inputElement.val(text);
     } else if (textareaElement.length > 0) {
-      console.log(textareaElement);
       textareaElement.val(text);
     } else {
       console.log("Kein input oder textarea Element gefunden");
@@ -271,7 +269,6 @@ class SectionAi {
           className: "inputButtonContainer",
         });
 
-        console.log(SectionAi.configuration.input_types);
 
         if (SectionAi.configuration.input_types.includes("audio")) {
           const audioButton = this.createRecordingButton();
@@ -396,7 +393,6 @@ class SectionAi {
       const text = JSON.parse(result.transcription).text;
       this.processInstructions(section, text, index);
 
-      console.log(text);
     } catch (error) {
       console.error("Fehler beim Hochladen:", error);
     } finally {
@@ -447,8 +443,6 @@ class SectionAi {
 
     const prompt = this.buildPrompt(inputs, text, index);
     const requestData = { action: "getAnswer", prompt };
-
-    console.log(inputs);
 
     try {
       const response = await ApiService.sendRequest("", {
@@ -543,10 +537,9 @@ class SectionAi {
   }
 
   static fillInputs(json, inputs) {
-    console.log(json);
     inputs.forEach((input) => {
       const newValue = json[input.id];
-      console.log(input.value);
+     
       if (
         newValue !== undefined &&
         newValue !== "" &&
@@ -601,14 +594,12 @@ class ApiService {
   }
 
   static async loadConfiguration() {
-    console.log(ApiService.baseurl);
+
     if (Object.keys(ApiService.configuration).length === 0) {
       const response = await fetch(
         `${ApiService.baseurl}/vendor/niklose00/kit/config/config.json`
       );
-      console.log(
-        `${ApiService.baseurl}/vendor/niklose00/kit/config/config.json`
-      );
+    
       if (!response.ok)
         throw new Error("Konfiguration konnte nicht geladen werden.");
       ApiService.configuration = await response.json();
@@ -834,7 +825,6 @@ class DOMElement {
 document.addEventListener("DOMContentLoaded", async () => {
   // Konfigurationsdatei laden
   const config = await ApiService.loadConfiguration();
-  console.log(config);
 
   AIEnhancedElement.configuration = ApiService.configuration["inputAI"];
   SectionAi.configuration = ApiService.configuration["sectionAI"];
