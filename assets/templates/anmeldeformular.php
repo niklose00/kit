@@ -1,10 +1,36 @@
 <div class="container" style="margin-bottom: 100px;">
-    <h2 class="mb-3">
-        Anmeldeformular
-    </h2>
-    <form section-stt>
 
+    <form section-stt>
+        <h2 class="mb-3">
+            Demonstration der KI-unterst ̈utzten Eingabefelder
+        </h2>
+        <!-- Hilfe zur Verfassung einer E-Mail -->
         <div class="my-5" form-section>
+            <h4>Hilfe zur Verfassung einer E-Mail</h4>
+            <div class="row my-4">
+                <div class="form-group col-sm">
+                    <label for="email_texteingabe">Hilfe zur Verfassung einer E-Mail:</label>
+                    <textarea data-ai-enhanced tools="write_email_from_bullets" stil="professionelle geschäftliche" class="form-control" id="email_texteingabe" name="email_texteingabe" rows="3"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Textbearbeitung -->
+        <div class="my-5" form-section>
+            <h4>Textbearbeitung</h4>
+            <div class="row my-4">
+                <div class="form-group col-sm">
+                    <label for="text">Text:</label>
+                    <textarea data-ai-enhanced tools="write_shorter;improve_writing;correct_text" class="form-control" id="text" name="text" rows="3"></textarea>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Dateneingabe -->
+        <div class="my-5" form-section>
+            <h4>Dateneingabe</h4>
+
             <div class="row mt-2 mb-4">
                 <div class="form-group col-sm">
                     <label for="vorname">Vorname:</label>
@@ -37,13 +63,7 @@
                 </div>
             </div>
 
-            <div class="row mt-2 mb-4">
-                <div class="form-group col-sm">
-                    <label for="telefonnummer">Telefonnummer:</label>
-                    <input type="tel" class="form-control" id="telefonnummer" name="telefonnummer">
-                </div>
-            </div>
-        </div>
 
+        </div>
     </form>
 </div>
