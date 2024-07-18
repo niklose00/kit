@@ -2,7 +2,7 @@
 
     <form section-stt>
         <h2 class="mb-3">
-            Template 3: Demonstration der KI-unterst ̈utzten Eingabefelder
+            Formular 3 : Demonstration der KI-unterst ̈utzten Eingabefelder
         </h2>
         <!-- Hilfe zur Verfassung einer E-Mail -->
         <div class="my-5" form-section>

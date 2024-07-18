@@ -1,7 +1,7 @@
 <div class="container" style="margin-bottom: 100px;">
     <form section-stt>
         <h2>
-            Template 2: Herstellerangaben eines Gleitschirms
+            Formular 2 : Herstellerangaben eines Gleitschirms
         </h2>
 
         <!-- Angaben zum Gleitschirm -->
